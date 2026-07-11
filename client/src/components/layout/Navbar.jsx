@@ -70,6 +70,13 @@ const Navbar = () => {
     }
   };
 
+   const handleCartClick = () => {
+    if (isLoggedIn) {
+      navigate("/cart");
+    } else {
+      navigate("/login");
+    }
+  };
   // ─── Handle favorites click ───────────────────────────────────────────────
   const handleFavoritesClick = () => {
     if (isLoggedIn) {
@@ -148,7 +155,7 @@ return (
 
         {/* Cart */}
         <button
-          onClick={() => navigate("/cart")}
+          onClick={handleCartClick}
           className="relative text-white/40 hover:text-white/80 transition-colors duration-200 p-1"
         >
           <ShoppingBag size={15} strokeWidth={1.5} />

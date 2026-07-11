@@ -1,5 +1,5 @@
 import {create} from 'zustand'
-import axios from 'axios'
+import api from "../api/axios";
 
 const useAuthStore = create((set) => ({
   // ─── State ────────────────────────────────────────────────────────────────
@@ -58,4 +58,4 @@ const useAuthStore = create((set) => ({
   clearError: () => set({ error: null }),
 }));
 
-export default useAuthstore;
+export default useAuthStore;

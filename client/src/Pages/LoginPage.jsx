@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import useAuthstore from "../store/userAuthStore"; // Adjust path to your store file
-
-export default function LoginPage({ navigate, redirectTo }) {
+import { useNavigate } from "react-router-dom";
+export default function LoginPage({ redirectTo }) {
   const [formData, setFormData] = useState({ email: "", password: "" });
-  
+    const navigate = useNavigate();
   const login = useAuthstore((state) => state.login);
   const error = useAuthstore((state) => state.error);
   const isLoading = useAuthstore((state) => state.isLoading);
@@ -25,7 +25,7 @@ export default function LoginPage({ navigate, redirectTo }) {
     <div className="min-h-screen bg-[#09090E] flex items-center justify-center px-4 font-sans selection:bg-stone-800">
       <div className="absolute top-6 left-8">
         <button 
-          onClick={() => navigate({ page: "landing" })}
+          onClick={() => navigate("/")}
           className="text-white/40 hover:text-white tracking-[0.25em] text-[10px] uppercase transition-colors"
         >
           ← Return to Studio
@@ -89,7 +89,7 @@ export default function LoginPage({ navigate, redirectTo }) {
 
         <div className="mt-6 pt-6 border-t border-stone-900/60 text-center">
           <button
-            onClick={() => navigate({ page: "register" })}
+            onClick={() => navigate("/register")}
             className="text-[10px] text-white/40 hover:text-white/70 tracking-widest uppercase transition-colors"
           >
             New to the studio? Create Account
