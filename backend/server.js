@@ -26,6 +26,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://ottobelli-shop.onrender.com",
+  "https://ottobelli.vercel.app",
   process.env.CLIENT_URL,
 ];
 
