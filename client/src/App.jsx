@@ -35,7 +35,7 @@ const{checkAuth}=useAuthStore()
     </>
   );
 };
-
+console.log("All Vite Env Variables:", import.meta.env);
 
   return (
  <BrowserRouter>
