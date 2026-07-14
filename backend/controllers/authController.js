@@ -1,148 +1,98 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const { generateAccessToken, generateRefreshToken } = require("../utils/genrateToken");
- 
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
-};
- 
-// @route POST /api/auth/register
-const registerUser = async (req, res) => {
+const bcrypt = require('bcryptjs');
+const jwt = require("jsonwebtoken");
+const generateToken = require("../utils/genrateToken"); 
+// @route   POST /api/auth/register
+const register = async (req, res) => {
+  // Destructure role from body instead of isAdmin to match your schema
+  const { name, email, password, role } = req.body;
+
   try {
-    const { name, email, password } = req.body;
- 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email, and password are required" });
-    }
- 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(409).json({ message: "An account with this email already exists" });
-    }
- 
+    // 1. Check if user already exists
+    const existinguser = await User.findOne({ email });
+    if (existinguser) return res.status(400).json({ message: "User already exists" });
+
+    // 2. Hash the password before saving
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
- 
-    const user = await User.create({
-      name,
-      email: email.toLowerCase(),
+
+    // 3. Create and save the new user
+    const newUser = new User({ 
+      name, 
+      email, 
       password: hashedPassword,
+      // If a role is passed in the request, use it; otherwise, the schema defaults to "customer"
+      role: role || "customer" 
     });
- 
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
- 
-    user.refreshToken = refreshToken;
-    await user.save();
- 
-    res
-      .cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
-      .cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 * 1000 })
-      .status(201)
-      .json({
-        user: { id: user._id, name: user.name, email: user.email, role: user.role },
-      });
+    
+    await newUser.save();
+
+    // 4. Respond with success and user info (matching your schema layout)
+    res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+      },
+    });
   } catch (err) {
-    res.status(500).json({ message: "Server error during registration", error: err.message });
+    res.status(500).json({ message: "Error in registering user", error: err.message });
   }
 };
- 
-// @route POST /api/auth/login
-const loginUser = async (req, res) => {
+
+// @route   POST /api/auth/login
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
- 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
-    }
- 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
- 
+    // 1. Find user by email
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+    // 2. Check if input password matches hashed password in DB
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
- 
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
- 
-    user.refreshToken = refreshToken;
-    await user.save();
- 
-    res
-      .cookie("accessToken", accessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
-      .cookie("refreshToken", refreshToken, { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 * 1000 })
-      .status(200)
-      .json({
-        user: { id: user._id, name: user.name, email: user.email, role: user.role },
-      });
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+    // 3. Sign a single JWT token that expires in 2 hours (putting role in payload)
+const token = generateToken(user);
+
+    // 4. Send token and user data back in JSON body
+    res.status(200).json({
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: "Server error during login", error: err.message });
+    res.status(500).json({ message: "Error logging in", error: err.message });
   }
 };
- 
-// @route POST /api/auth/logout
-const logoutUser = async (req, res) => {
-  try {
-    const { refreshToken } = req.cookies;
- 
-    if (refreshToken) {
-      await User.findOneAndUpdate({ refreshToken }, { refreshToken: "" });
-    }
- 
-    res
-      .clearCookie("accessToken", cookieOptions)
-      .clearCookie("refreshToken", cookieOptions)
-      .status(200)
-      .json({ message: "Logged out successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Server error during logout", error: err.message });
-  }
-};
- 
-// @route POST /api/auth/refresh
-const refreshAccessToken = async (req, res) => {
-  try {
-    const { refreshToken } = req.cookies;
- 
-    if (!refreshToken) {
-      return res.status(401).json({ message: "No refresh token provided" });
-    }
- 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
- 
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(401).json({ message: "Invalid refresh token" });
-    }
- 
-    const newAccessToken = generateAccessToken(user._id);
- 
-    res
-      .cookie("accessToken", newAccessToken, { ...cookieOptions, maxAge: 15 * 60 * 1000 })
-      .status(200)
-      .json({ message: "Access token refreshed" });
-  } catch (err) {
-    res.status(401).json({ message: "Refresh token invalid or expired" });
-  }
-};
- 
-// @route GET /api/auth/me
+
+// @route   GET /api/auth/me
+// @desc    Get current logged-in user details (requires protect middleware)
 const getCurrentUser = async (req, res) => {
-  // req.user is set by the `protect` middleware
-  res.status(200).json({ user: req.user });
+  try {
+    // The 'protect' middleware puts the user object on 'req.user' automatically
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    res.status(200).json({
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching user profile", error: err.message });
+  }
 };
- 
-module.exports = {
-  registerUser,
-  loginUser,
-  logoutUser,
-  refreshAccessToken,
-  getCurrentUser,
-};
+
+module.exports = { register, login, getCurrentUser };

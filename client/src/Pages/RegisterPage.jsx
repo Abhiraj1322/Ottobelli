@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import useAuthstore from "../store/userAuthStore"; // Adjust path to your store file
-import { Link } from "react-router-dom";
-export default function RegisterPage({ navigate, redirectTo }) {
+import useAuthStore from "../store/userAuthStore"; // Adjust path to your store file
+import { Link ,useNavigate} from "react-router-dom";
+
+export default function RegisterPage({  redirectTo }) {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-  
-  const register = useAuthstore((state) => state.register);
-  const error = useAuthstore((state) => state.error);
-  const isLoading = useAuthstore((state) => state.isLoading);
-  const isAuthenticated = useAuthstore((state) => state.isAuthenticated);
+  const navigate=useNavigate()
+  const register = useAuthStore((state) => state.register);
+  const error = useAuthStore((state) => state.error);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(redirectTo || { page: "landing" });
+      navigate();
     }
   }, [isAuthenticated, navigate, redirectTo]);
 
@@ -99,7 +100,7 @@ export default function RegisterPage({ navigate, redirectTo }) {
 
         <div className="mt-6 pt-6 border-t border-stone-900/60 text-center">
           <button
-            onClick={() => navigate({ page: "login" })}
+            onClick={() => navigate("/login")}
             className="text-[10px] text-white/40 hover:text-white/70 tracking-widest uppercase transition-colors"
           >
             Already registered? Sign In

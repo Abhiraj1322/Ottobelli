@@ -1,18 +1,15 @@
 const jwt = require("jsonwebtoken");
+
+
  
-// Short-lived token sent to the client and used on every request
-const generateAccessToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: "15m",
-  });
+const generateToken = (user) => {
+  // We embed the id, email, and role inside the token payload
+  return jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "2h" } // Token automatically expires in 2 hours
+  );
 };
- 
-// Long-lived token stored as httpOnly cookie, used to silently get new access tokens
-const generateRefreshToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: "30d",
-  });
-};
- 
-module.exports = { generateAccessToken, generateRefreshToken };
+
+module.exports = generateToken;
  

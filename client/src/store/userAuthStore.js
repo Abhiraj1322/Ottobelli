@@ -1,4 +1,4 @@
-import {create} from 'zustand'
+import { create } from 'zustand'
 import api from "../api/axios";
 
 const useAuthStore = create((set) => ({
@@ -14,8 +14,15 @@ const useAuthStore = create((set) => ({
   register: async (name, email, password) => {
     set({ isLoading: true, error: null });
     try {
+      // If your backend register does NOT return a token, users must log in manually after.
+      // If it DOES return a token, we save it here just like in the login action.
       const res = await api.post("/api/auth/register", { name, email, password });
-      set({ user: res.data.user, isLoggedIn: true, isLoading: false });
+      
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+      
+      set({ user: res.data.user, isLoggedIn: !!res.data.token, isLoading: false });
     } catch (err) {
       set({ error: err.response?.data?.message || "Registration failed", isLoading: false });
     }
@@ -26,6 +33,11 @@ const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const res = await api.post("/api/auth/login", { email, password });
+      
+      // ⭐ 1. SAVE THE TOKEN TO LOCAL STORAGE
+      // This allows your Axios interceptor to find it and send it in headers
+      localStorage.setItem("token", res.data.token); 
+
       set({ user: res.data.user, isLoggedIn: true, isLoading: false });
     } catch (err) {
       set({ error: err.response?.data?.message || "Login failed", isLoading: false });
@@ -33,28 +45,36 @@ const useAuthStore = create((set) => ({
   },
 
   // Logout
-  logout: async () => {
-    try {
-      await api.post("/api/auth/logout");
-    } catch (err) {
-      console.error("Logout error:", err);
-    } finally {
-      set({ user: null, isLoggedIn: false });
-    }
+  logout: () => {
+    // ⭐ 2. REMOVE THE TOKEN FROM LOCAL STORAGE
+    localStorage.removeItem("token");
+
+    // ⭐ 3. CLIENT-SIDE ONLY LOGOUT
+    // Since JWTs are stateless, we don't need to call a backend route anymore!
+    set({ user: null, isLoggedIn: false, error: null });
   },
 
   // Check if user is still logged in on app load / page refresh
   checkAuth: async () => {
+    // If there is no token in localStorage, don't even bother calling the API
+    const token = localStorage.getItem("token");
+    if (!token) {
+      set({ user: null, isLoggedIn: false, isLoading: false });
+      return;
+    }
+
     set({ isLoading: true });
     try {
       const res = await api.get("/api/auth/me");
-      set({ user: res.data.user, isLoggedIn: true, isLoading: false });
+      set({ user: res.data.user, isLoggedIn: true, isLoading: false, error: null });
     } catch (err) {
-      set({ user: null, isLoggedIn: false, isLoading: false });
+      // If the token is expired/invalid, clean up storage
+      localStorage.removeItem("token");
+      set({ user: null, isLoggedIn: false, isLoading: false, error: null });
     }
   },
 
-  // Clear error
+  // Clear error manually if needed
   clearError: () => set({ error: null }),
 }));
 

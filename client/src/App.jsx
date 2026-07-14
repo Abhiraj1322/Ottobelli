@@ -11,6 +11,11 @@ import ClassicsPage from './Pages/ClassicsPage'
 import {BrowserRouter,Routes,Route} from'react-router-dom'
 import { Outlet } from "react-router-dom";
 import useAuthStore from '../src/store/userAuthStore'
+import ProtectedRoute from './components/protectedroute/ProtectedRoute'
+import CartPage from './Pages/CartPage'
+import FavoritesPage from './Pages/FavoritesPage'
+import CategoryListingPage from './Pages/CategoryListingPage'
+import ProductPage from './Pages/ProductPage'
 //layout
 import Navbar from "./components/layout/Navbar";
 function App() {
@@ -39,10 +44,20 @@ const{checkAuth}=useAuthStore()
 <Route path="/login" element={<LoginPage />} />
 <Route path="/register" element={<RegisterPage />} />
  <Route element={<NavbarLayout />}>
-
+ 
 <Route path='/everyday' element={<EverydayPage/>}/>
 <Route path='/classics' element={<ClassicsPage/>}/>
-
+ 
+ <Route path="/cart" element={
+          <ProtectedRoute><CartPage /></ProtectedRoute>
+        } />
+ <Route path="/favorites" element={
+          <ProtectedRoute><FavoritesPage /></ProtectedRoute>
+        } />
+ {/* ── Category + Product Routes ── */}
+        <Route path="/classics/:categorySlug" element={<CategoryListingPage section="classics" />} />
+        <Route path="/everyday/:categorySlug" element={<CategoryListingPage section="everyday" />} />
+           <Route path="/products/:slug" element={<ProductPage />} />
  </Route>
  </Routes>
  

@@ -80,7 +80,7 @@ const Navbar = () => {
   // ─── Handle favorites click ───────────────────────────────────────────────
   const handleFavoritesClick = () => {
     if (isLoggedIn) {
-      navigate("/account/favorites");
+      navigate("/favorites");
     } else {
       navigate("/login");
     }
