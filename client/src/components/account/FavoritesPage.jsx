@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import  useFavoritesStore from "../store/favoritesStore"; // Adjust path to your favorites store file
+import  useFavoritesStore from "../../store/favoritesStore"; // Adjust path to your favorites store file
 import { Link } from "react-router-dom";
 
 export default function FavoritesPage() {

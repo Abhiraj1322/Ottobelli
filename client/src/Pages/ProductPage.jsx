@@ -6,11 +6,14 @@ import api from "../api/axios";
 import useAuthStore from "../store/userAuthStore";
 import useCartStore from "../store/userCartStore";
 import useFavoritesStore from "../store/favoritesStore";
-
+import { useTailorStore } from "../store/useTailorStore";
+import CustomizationModal from "../components/modals/CustomizationModal";
+import ProfileSelectorModal from "../components/modals/ProfileSelectorModal";
 const ProductPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
 
   // Get section + categorySlug from URL query params
   // e.g. /products/charcoal-suit?section=classics&category=suits-blazers
@@ -435,7 +438,34 @@ const handleCustomize = () => {
         />
       </button>
    
+  
+<AnimatePresence>
+  {showCustomizationModal && (
+    <CustomizationModal
+      product={product}
+      profileId={null}
+      onClose={() => setShowCustomizationModal(false)}
+      onSaved={(id) => {
+        setCustomizationId(id);
+        setShowCustomizationModal(false);
+        setShowProfileModal(true);
+      }}
+    />
+  )}
+  {showProfileModal && (
+    <ProfileSelectorModal
+      product={product}
+      customizationSelectionId={customizationId}
+      onClose={() => setShowProfileModal(false)}
+      onAdded={() => {
+        setShowProfileModal(false);
+        navigate("/cart");
+      }}
+    />
+  )}
+</AnimatePresence>
 
+    
 
 
 

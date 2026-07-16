@@ -13,11 +13,14 @@ import { Outlet } from "react-router-dom";
 import useAuthStore from '../src/store/userAuthStore'
 import ProtectedRoute from './components/protectedroute/ProtectedRoute'
 import CartPage from './Pages/CartPage'
-import FavoritesPage from './Pages/FavoritesPage'
+import FavoritesPage from './components/account/FavoritesPage'
 import CategoryListingPage from './Pages/CategoryListingPage'
 import ProductPage from './Pages/ProductPage'
 //layout
 import Navbar from "./components/layout/Navbar";
+import ProfilesPage from './components/account/ProfilesPage'
+import MeasurementsPage from './components/account/MeasurementsPage'
+import AccountPage from './components/account/AccountPage'
 function App() {
   const [count, setCount] = useState(0)
 const{checkAuth}=useAuthStore()
@@ -54,6 +57,18 @@ console.log("All Vite Env Variables:", import.meta.env);
  <Route path="/favorites" element={
           <ProtectedRoute><FavoritesPage /></ProtectedRoute>
         } />
+ <Route path="/account/profiles" element={
+          <ProtectedRoute><ProfilesPage /></ProtectedRoute>
+        } />
+         <Route path="/account/profiles/:id/measurements" element={
+          <ProtectedRoute><MeasurementsPage /></ProtectedRoute>
+        } />
+
+        <Route path="/account" element={
+          <ProtectedRoute><AccountPage /></ProtectedRoute>
+        } />
+
+
  {/* ── Category + Product Routes ── */}
         <Route path="/classics/:categorySlug" element={<CategoryListingPage section="classics" />} />
         <Route path="/everyday/:categorySlug" element={<CategoryListingPage section="everyday" />} />
