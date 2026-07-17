@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, ChevronRight, Play, Plus } from "lucide-react";
+import { X, ChevronRight, Play, Plus, Users, ShieldAlert, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
@@ -57,7 +57,7 @@ const BodyDiagram = ({ highlighted = [] }) => {
   });
 
   return (
-    <svg viewBox="0 0 120 280" width="130" height="240" style={{ overflow: "visible" }}>
+    <svg viewBox="0 0 120 280" className="w-32 h-60 md:w-[130px] md:h-[240px]" style={{ overflow: "visible" }}>
       <ellipse cx="60" cy="22" rx="14" ry="16" {...h("neck")} strokeWidth="1.5" />
       <rect x="55" y="36" width="10" height="10" rx="2" {...h("neck")} strokeWidth="1" />
       <path d="M26 54 Q20 50 16 56 Q14 62 20 68 L26 70" fill="none" stroke={isHighlighted("shoulders") ? "#C8A96E" : "#B0A890"} strokeWidth="1.5" strokeLinecap="round" style={{ opacity: isHighlighted("shoulders") ? 0.9 : 0.5, transition: "all 0.3s" }} />
@@ -98,6 +98,9 @@ const MeasurementsPage = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Mobile Navigation Tab State ("profiles", "diagram", "form")
+  const [mobileTab, setMobileTab] = useState("form");
 
   // Fetch profiles from backend
   useEffect(() => {
@@ -184,33 +187,65 @@ const MeasurementsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ background: "#09090E" }}>
+      <div className="flex items-center justify-center h-screen bg-[#09090E]">
         <p className="text-white/40 text-sm tracking-widest">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div
-      className="flex items-center justify-center min-h-screen"
-      style={{ background: "#09090E", paddingTop: "46px" }}
-    >
+    <div className="flex items-center justify-center min-h-screen bg-[#09090E] p-0 md:p-4 md:pt-16">
+      {/* Container wrapper: Stacks on mobile, Grid on desktop */}
       <div
-        className="flex overflow-hidden"
-        style={{
-          width: "min(900px, 95vw)",
-          height: "min(680px, 90vh)",
-          background: "#F5F0E8",
-          fontFamily: "'Montserrat', sans-serif",
-        }}
+        className="w-full md:w-[95vw] lg:w-[900px] h-screen md:h-[90vh] md:max-h-[680px] bg-[#F5F0E8] flex flex-col md:grid md:grid-cols-[180px_260px_1fr] overflow-hidden"
+        style={{ fontFamily: "'Montserrat', sans-serif" }}
       >
-        {/* ── Left — Profile list ── */}
+        {/* ── Mobile Tab Navigation Header (Visible only on mobile) ── */}
+        <div className="flex md:hidden bg-[#1A1814] text-[#7A7260] justify-around items-center border-b border-white/5 py-2 z-10">
+          <button
+            onClick={() => setMobileTab("profiles")}
+            className={`flex flex-col items-center gap-1 py-1 px-3 text-[10px] uppercase font-bold tracking-wider transition-colors ${
+              mobileTab === "profiles" ? "text-[#C8A96E]" : ""
+            }`}
+          >
+            <Users size={16} />
+            <span>Profiles</span>
+          </button>
+          <button
+            onClick={() => setMobileTab("diagram")}
+            className={`flex flex-col items-center gap-1 py-1 px-3 text-[10px] uppercase font-bold tracking-wider transition-colors ${
+              mobileTab === "diagram" ? "text-[#C8A96E]" : ""
+            }`}
+          >
+            <ShieldAlert size={16} />
+            <span>Visual</span>
+          </button>
+          <button
+            onClick={() => setMobileTab("form")}
+            className={`flex flex-col items-center gap-1 py-1 px-3 text-[10px] uppercase font-bold tracking-wider transition-colors ${
+              mobileTab === "form" ? "text-[#C8A96E]" : ""
+            }`}
+          >
+            <FileText size={16} />
+            <span>Entry</span>
+          </button>
+        </div>
+
+        {/* ── Left — Profile list (Responsive visibility) ── */}
         <div
-          className="flex flex-col overflow-hidden flex-shrink-0"
-          style={{ width: "180px", background: "#FFFFFF", borderRight: "1px solid rgba(26,24,20,0.08)" }}
+          className={`flex-col overflow-hidden flex-shrink-0 md:flex ${
+            mobileTab === "profiles" ? "flex h-full" : "hidden"
+          }`}
+          style={{
+            width: "100%",
+            maxWidth: "none",
+            background: "#FFFFFF",
+            borderRight: "1px solid rgba(26,24,20,0.08)",
+          }}
+          className="w-full md:w-[180px] flex flex-col"
         >
-          <div className="px-4 py-4 border-b" style={{ borderColor: "rgba(26,24,20,0.08)" }}>
-            <p className="text-[9px] tracking-[0.35em] uppercase font-bold" style={{ color: "#9A9080" }}>
+          <div className="px-4 py-4 border-b border-black/5 flex-shrink-0">
+            <p className="text-[9px] tracking-[0.35em] uppercase font-bold text-[#9A9080]">
               Profiles
             </p>
           </div>
@@ -219,17 +254,19 @@ const MeasurementsPage = () => {
             {profiles.map((profile) => (
               <button
                 key={profile._id}
-                onClick={() => setActiveProfileId(profile._id)}
-                className="w-full text-left px-4 py-3.5 border-b transition-colors"
+                onClick={() => {
+                  setActiveProfileId(profile._id);
+                  setMobileTab("form"); // Auto navigate to form view on mobile upon selection
+                }}
+                className="w-full text-left px-4 py-3.5 border-b border-black/[0.06] transition-colors"
                 style={{
-                  borderColor: "rgba(26,24,20,0.06)",
                   background: profile._id === activeProfileId ? "#F5F0E8" : "transparent",
                 }}
               >
-                <p className="text-xs font-semibold" style={{ color: "#1A1814" }}>
+                <p className="text-xs font-semibold text-[#1A1814]">
                   {profile.displayName}
                 </p>
-                <p className="text-[9px] mt-0.5" style={{ color: "#9A9080" }}>
+                <p className="text-[9px] mt-0.5 text-[#9A9080]">
                   {Object.values(profile.measurements || {}).filter((v) => v !== null && v !== undefined).length} / 14 filled
                 </p>
               </button>
@@ -237,8 +274,7 @@ const MeasurementsPage = () => {
 
             <button
               onClick={handleAddProfile}
-              className="w-full px-4 py-3 flex items-center gap-1.5 text-[10px] tracking-wider hover:bg-[#F5F0E8] transition-colors"
-              style={{ color: "#C8A96E", fontWeight: 600 }}
+              className="w-full px-4 py-3 flex items-center gap-1.5 text-[10px] tracking-wider hover:bg-[#F5F0E8] transition-colors text-[#C8A96E] font-semibold"
             >
               <Plus size={11} />
               Add Profile
@@ -246,13 +282,19 @@ const MeasurementsPage = () => {
           </div>
         </div>
 
-        {/* ── Center — Body diagram ── */}
+        {/* ── Center — Body diagram (Responsive visibility) ── */}
         <div
-          className="flex flex-col items-center justify-between flex-shrink-0 relative"
-          style={{ width: "260px", background: "#F5F0E8", borderRight: "1px solid rgba(26,24,20,0.08)" }}
+          className={`flex-col items-center justify-between flex-shrink-0 relative md:flex bg-[#F5F0E8] ${
+            mobileTab === "diagram" ? "flex h-full" : "hidden"
+          }`}
+          style={{
+            width: "100%",
+            borderRight: "1px solid rgba(26,24,20,0.08)",
+          }}
+          className="w-full md:w-[260px] flex flex-col"
         >
           {/* Body tab toggle */}
-          <div className="w-full flex border-b" style={{ borderColor: "rgba(26,24,20,0.08)" }}>
+          <div className="w-full flex border-b border-black/5">
             {["upper", "lower"].map((tab) => (
               <button
                 key={tab}
@@ -290,25 +332,24 @@ const MeasurementsPage = () => {
                 />
               ))}
             </div>
-            <p className="text-[9px] tracking-wider" style={{ color: "#9A9080" }}>
+            <p className="text-[9px] tracking-wider text-[#9A9080]">
               {filledCount} / 14
             </p>
           </div>
         </div>
 
-        {/* ── Right — Measurement form ── */}
-        <div className="flex flex-col flex-1 overflow-hidden">
+        {/* ── Right — Measurement form (Responsive visibility) ── */}
+        <div className={`flex-col flex-1 overflow-hidden md:flex ${
+          mobileTab === "form" ? "flex h-full" : "hidden"
+        }`}>
 
           {/* Header */}
-          <div
-            className="flex items-center justify-between px-6 py-4 flex-shrink-0 border-b"
-            style={{ borderColor: "rgba(26,24,20,0.08)", background: "#FFFFFF" }}
-          >
+          <div className="flex items-center justify-between px-6 py-4 flex-shrink-0 border-b border-black/5 bg-white">
             <div>
-              <h3 className="text-sm font-bold" style={{ color: "#1A1814" }}>
+              <h3 className="text-sm font-bold text-[#1A1814]">
                 {activeProfile?.displayName ?? "Select a profile"}
               </h3>
-              <p className="text-[9px] mt-0.5" style={{ color: "#9A9080" }}>
+              <p className="text-[9px] mt-0.5 text-[#9A9080]">
                 Select a measurement to begin
               </p>
             </div>
@@ -328,40 +369,38 @@ const MeasurementsPage = () => {
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="border-b flex-shrink-0 overflow-hidden"
-                style={{ borderColor: "rgba(26,24,20,0.08)", background: "#FFFFFF" }}
+                className="border-b border-black/5 flex-shrink-0 overflow-hidden bg-white"
               >
                 <div className="px-6 py-4">
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-3 gap-4">
                     <div>
-                      <h4 className="text-base font-bold" style={{ color: "#1A1814" }}>
+                      <h4 className="text-base font-bold text-[#1A1814]">
                         {activeMeasurementDef.label}
                       </h4>
-                      <p className="text-[9px] mt-0.5 leading-relaxed max-w-xs" style={{ color: "#7A7260" }}>
+                      <p className="text-[9px] mt-0.5 leading-relaxed max-w-xs text-[#7A7260]">
                         {activeMeasurementDef.hint}
                       </p>
                     </div>
-                    <span className="text-5xl font-bold opacity-10 leading-none" style={{ color: "#1A1814" }}>
+                    <span className="text-5xl font-bold opacity-10 leading-none text-[#1A1814]">
                       {(allMeasurements.indexOf(activeMeasurementDef) + 1).toString().padStart(2, "0")}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center border" style={{ borderColor: "rgba(26,24,20,0.2)" }}>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex items-center border border-black/20">
                       <input
                         type="number"
                         value={entryValue}
                         onChange={(e) => setEntryValue(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && saveEntry()}
                         placeholder="0.0"
-                        className="w-20 px-3 py-2 text-center text-lg font-bold outline-none bg-transparent"
-                        style={{ color: "#1A1814" }}
+                        className="w-20 px-3 py-2 text-center text-lg font-bold outline-none bg-transparent text-[#1A1814]"
                         autoFocus
                       />
-                      <span className="pr-3 text-sm" style={{ color: "#9A9080" }}>in</span>
+                      <span className="pr-3 text-sm text-[#9A9080]">in</span>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <button
                         onClick={() => {
                           const idx = allMeasurements.indexOf(activeMeasurementDef);
@@ -372,37 +411,33 @@ const MeasurementsPage = () => {
                             );
                           }
                         }}
-                        className="px-3 py-2 text-[9px] border transition-colors hover:bg-[#F5F0E8] tracking-wider"
-                        style={{ borderColor: "rgba(26,24,20,0.15)", color: "#7A7260" }}
+                        className="px-3 py-2 text-[9px] border border-black/15 text-[#7A7260] transition-colors hover:bg-[#F5F0E8] tracking-wider"
                       >
                         ← Prev
                       </button>
                       <button
                         onClick={saveEntry}
                         disabled={isSaving}
-                        className="px-3 py-2 text-[9px] border transition-colors hover:bg-[#F5F0E8] tracking-wider"
-                        style={{ borderColor: "rgba(26,24,20,0.15)", color: "#7A7260" }}
+                        className="px-3 py-2 text-[9px] border border-black/15 text-[#7A7260] transition-colors hover:bg-[#F5F0E8] tracking-wider"
                       >
                         {isSaving ? "..." : "Next →"}
                       </button>
                       <button
-                        className="px-3 py-2 text-[9px] tracking-wider flex items-center gap-1 transition-colors hover:opacity-80"
-                        style={{ background: "#C8A96E", color: "#1A1814", fontWeight: 700 }}
+                        className="px-3 py-2 text-[9px] tracking-wider flex items-center gap-1 transition-colors hover:opacity-80 bg-[#C8A96E] text-[#1A1814] font-bold"
                       >
                         <Play size={9} fill="#1A1814" />
                         Guide
                       </button>
                       <button
                         onClick={() => { setActiveMeasurement(null); setEntryValue(""); }}
-                        className="w-8 h-8 flex items-center justify-center border transition-colors hover:bg-[#F5F0E8]"
-                        style={{ borderColor: "rgba(26,24,20,0.15)", color: "#7A7260" }}
+                        className="w-8 h-8 flex items-center justify-center border border-black/15 text-[#7A7260] transition-colors hover:bg-[#F5F0E8]"
                       >
                         <X size={12} />
                       </button>
                     </div>
                   </div>
 
-                  <p className="text-[8px] tracking-[0.3em] uppercase mt-2" style={{ color: "#C8A96E", fontWeight: 600 }}>
+                  <p className="text-[8px] tracking-[0.3em] uppercase mt-2 text-[#C8A96E] font-600">
                     {activeProfile?.measurements?.[activeMeasurementDef.key] !== null &&
                     activeProfile?.measurements?.[activeMeasurementDef.key] !== undefined
                       ? "✓ Measurement saved"
@@ -414,12 +449,9 @@ const MeasurementsPage = () => {
           </AnimatePresence>
 
           {/* Measurement list */}
-          <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
-            <div
-              className="px-6 py-2 border-b"
-              style={{ background: "#EDE8DE", borderColor: "rgba(26,24,20,0.08)" }}
-            >
-              <p className="text-[8px] tracking-[0.4em] uppercase font-bold" style={{ color: "#7A7260" }}>
+          <div className="flex-1 overflow-y-auto pb-8" style={{ scrollbarWidth: "none" }}>
+            <div className="px-6 py-2 border-b border-black/5 bg-[#EDE8DE]">
+              <p className="text-[8px] tracking-[0.4em] uppercase font-bold text-[#7A7260]">
                 {bodyTab === "upper" ? "Upper Body" : "Lower Body"}
               </p>
             </div>
@@ -434,9 +466,8 @@ const MeasurementsPage = () => {
                     setActiveMeasurement(measurement.key);
                     setEntryValue(value?.toString() ?? "");
                   }}
-                  className="w-full flex items-center px-6 py-3 border-b transition-colors hover:bg-white/50"
+                  className="w-full flex items-center px-6 py-3 border-b border-black/[0.07] transition-colors hover:bg-white/50"
                   style={{
-                    borderColor: "rgba(26,24,20,0.07)",
                     background: isActive ? "#FFFFFF" : "transparent",
                   }}
                 >
@@ -449,17 +480,17 @@ const MeasurementsPage = () => {
                   >
                     {value && <span style={{ color: "#1A1814", fontSize: "8px", fontWeight: 700 }}>✓</span>}
                   </div>
-                  <div className="flex-1 text-left">
-                    <span className="text-xs font-semibold" style={{ color: "#1A1814" }}>
-                      <span className="mr-1.5 text-[10px]" style={{ color: "#9A9080" }}>{i + 1}</span>
+                  <div className="flex-1 text-left flex items-center justify-between pr-2">
+                    <span className="text-xs font-semibold text-[#1A1814]">
+                      <span className="mr-1.5 text-[10px] text-[#9A9080]">{i + 1}</span>
                       {measurement.label}
                     </span>
                     {value ? (
-                      <span className="ml-2 text-[10px] font-bold" style={{ color: "#C8A96E" }}>
+                      <span className="text-[10px] font-bold text-[#C8A96E]">
                         {value} in
                       </span>
                     ) : (
-                      <span className="ml-2 text-[9px]" style={{ color: "#9A9080" }}>Tap to enter</span>
+                      <span className="text-[9px] text-[#9A9080]">Tap to enter</span>
                     )}
                   </div>
                   <ChevronRight size={12} color="#9A9080" />
@@ -470,13 +501,12 @@ const MeasurementsPage = () => {
             {/* Profile details accordion */}
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="w-full flex items-center justify-between px-6 py-3 border-b"
-              style={{ borderColor: "rgba(26,24,20,0.07)", background: "#EDE8DE" }}
+              className="w-full flex items-center justify-between px-6 py-3 border-b border-black/5 bg-[#EDE8DE]"
             >
-              <p className="text-[8px] tracking-[0.4em] uppercase font-bold" style={{ color: "#7A7260" }}>
+              <p className="text-[8px] tracking-[0.4em] uppercase font-bold text-[#7A7260]">
                 Profile Details
               </p>
-              <span className="text-[10px]" style={{ color: "#9A9080" }}>{showDetails ? "▲" : "▼"}</span>
+              <span className="text-[10px] text-[#9A9080]">{showDetails ? "▲" : "▼"}</span>
             </button>
 
             <AnimatePresence initial={false}>
@@ -485,26 +515,24 @@ const MeasurementsPage = () => {
                   initial={{ height: 0 }}
                   animate={{ height: "auto" }}
                   exit={{ height: 0 }}
-                  style={{ overflow: "hidden" }}
+                  className="overflow-hidden"
                 >
                   <div className="px-6 py-5 space-y-4">
                     <div>
-                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold" style={{ color: "#9A9080" }}>
+                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
                         Display Name
                       </p>
                       <input
-                        className="w-full px-3 py-2 text-xs border outline-none"
-                        style={{ borderColor: "rgba(26,24,20,0.15)", color: "#1A1814", background: "#FFFFFF" }}
+                        className="w-full px-3 py-2 text-xs border border-black/15 text-[#1A1814] bg-white outline-none"
                         defaultValue={activeProfile?.displayName}
                       />
                     </div>
                     <div>
-                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold" style={{ color: "#9A9080" }}>
+                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
                         Preferred Fit
                       </p>
                       <select
-                        className="w-full px-3 py-2 text-xs border outline-none"
-                        style={{ borderColor: "rgba(26,24,20,0.15)", color: "#7A7260", background: "#FFFFFF" }}
+                        className="w-full px-3 py-2 text-xs border border-black/15 text-[#7A7260] bg-white outline-none"
                         defaultValue={activeProfile?.preferredFit ?? ""}
                       >
                         <option value="">Select fit...</option>
@@ -514,12 +542,11 @@ const MeasurementsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold" style={{ color: "#9A9080" }}>
+                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
                         Fabrics to Avoid
                       </p>
                       <select
-                        className="w-full px-3 py-2 text-xs border outline-none"
-                        style={{ borderColor: "rgba(26,24,20,0.15)", color: "#7A7260", background: "#FFFFFF" }}
+                        className="w-full px-3 py-2 text-xs border border-black/15 text-[#7A7260] bg-white outline-none"
                       >
                         <option>Add fabric to avoid...</option>
                         <option>Polyester</option>
@@ -528,26 +555,24 @@ const MeasurementsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold" style={{ color: "#9A9080" }}>
+                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
                         Reference Photos
                       </p>
                       <button
-                        className="w-24 h-20 border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors hover:bg-[#EDE8DE]"
-                        style={{ borderColor: "rgba(26,24,20,0.15)" }}
+                        className="w-24 h-20 border-2 border-dashed border-black/15 flex flex-col items-center justify-center gap-1 transition-colors hover:bg-[#EDE8DE]"
                       >
                         <Plus size={14} color="#9A9080" />
-                        <span className="text-[9px] tracking-wider" style={{ color: "#9A9080" }}>ADD PHOTO</span>
+                        <span className="text-[9px] tracking-wider text-[#9A9080]">ADD PHOTO</span>
                       </button>
                     </div>
                     <div>
-                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold" style={{ color: "#9A9080" }}>
+                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
                         Special Instructions
                       </p>
                       <textarea
-                        className="w-full px-3 py-2 text-xs border outline-none resize-none"
+                        className="w-full px-3 py-2 text-xs border border-black/15 text-[#7A7260] bg-white outline-none resize-none"
                         rows={3}
                         placeholder="Specific requests, posture notes, fitting preferences..."
-                        style={{ borderColor: "rgba(26,24,20,0.15)", color: "#7A7260", background: "#FFFFFF" }}
                         defaultValue={activeProfile?.specialInstructions ?? ""}
                       />
                     </div>
