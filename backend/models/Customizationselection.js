@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const customizationSelectionSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile", required: true },
+  
     productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
  
     // e.g. { "Shoulder Type": "Standard", "Lapels": "Notch", "Buttons": "Two" }

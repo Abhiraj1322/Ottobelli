@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Check, Ruler } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/axios";
+import api from "../../api/axios"
 import useCartStore from "../../store/userCartStore";
 
 const ProfileSelectorModal = ({

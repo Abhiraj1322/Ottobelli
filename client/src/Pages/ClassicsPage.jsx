@@ -30,7 +30,7 @@ const ClassicsPage = () => {
     >
       {/* ── Hero Section ── */}
       <div
-        className="relative flex flex-col justify-center px-16 py-24 overflow-hidden"
+        className="relative flex flex-col justify-center px-6 sm:px-12 md:px-16 py-16 md:py-24 overflow-hidden"
         style={{ minHeight: "55vh" }}
       >
         {/* Background image - Premium Tailoring Aesthetics */}
@@ -97,10 +97,10 @@ const ClassicsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             onClick={() => navigate("/classics/suits")}
-            className="px-8 py-3.5 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 hover:opacity-90"
+            className="w-full sm:w-auto text-center px-8 py-3.5 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 hover:opacity-90"
             style={{ background: "#C8A96E", color: "#1A1814" }}
           >
-            Begin Custom Order →
+            Explore Classics Wear →
           </motion.button>
         </div>
       </div>
@@ -245,7 +245,7 @@ const ClassicsPage = () => {
           background: "rgba(255,255,255,0.02)",
         }}
       >
-        <div className="grid grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:grid-cols-3 md:gap-12  ">
           {[
             {
               title: "Bespoke Drafted",

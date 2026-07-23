@@ -9,11 +9,13 @@ export default function FavoritesPage() {
   const removeFavorite = useFavoritesStore((state) => state.removeFavorite);
   const isLoading = useFavoritesStore((state) => state.isLoading);
   const error = useFavoritesStore((state) => state.error);
-
+console.log(favorites)
   // Automatically fetch favorites from your Render backend on component mount
   useEffect(() => {
     fetchFavorites();
+
   }, [fetchFavorites]);
+
 
   return (
     <div className="min-h-screen bg-[#09090E] text-stone-200 px-6 py-12 md:px-12 lg:px-24 font-sans selection:bg-stone-800">
@@ -121,7 +123,7 @@ export default function FavoritesPage() {
                         ${Number(product.price).toFixed(2)}
                       </span>
                       <Link
-                        to={`/product/${product._id}`}
+                        to={`/products/${product.slug}`}
                         className="text-[10px] text-white/60 hover:text-white border border-stone-800 hover:border-white/40 px-3 py-1.5 rounded-sm tracking-widest uppercase transition-all bg-neutral-900/50"
                       >
                         View Details

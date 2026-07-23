@@ -10,7 +10,7 @@ import useFavoritesStore from "../store/favoritesStore";
 const ProductCard = ({ product, section, onFavorite, isFavorited }) => {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
-
+const [isFavourite, setIsFavourite] = useState(false);
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -78,9 +78,9 @@ const ProductCard = ({ product, section, onFavorite, isFavorited }) => {
 
         {/* Favorite button */}
         <motion.button
-          className="absolute bottom-3 right-3 w-7 h-7 flex items-center justify-center rounded-full transition-colors"
+          className="absolute bottom-3 right-3 w-7 h-7 flex items-center justify-center rounded-full transition-colors z-20"
           animate={{ opacity: hovered || isFavorited ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.2}}
           style={{
             background: "rgba(9,9,14,0.7)",
             backdropFilter: "blur(8px)",
@@ -100,7 +100,7 @@ const ProductCard = ({ product, section, onFavorite, isFavorited }) => {
 
         {/* Quick view on hover */}
         <motion.div
-          className="absolute bottom-0 left-0 right-0 py-3 text-center"
+          className="absolute bottom-0 left-0 right-0 py-3 text-center z-10"
           animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 8 }}
           transition={{ duration: 0.25 }}
           style={{ background: "rgba(9,9,14,0.85)", backdropFilter: "blur(8px)" }}
@@ -159,7 +159,7 @@ const CategoryListingPage = ({ section }) => {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuthStore();
   const { addFavorite, removeFavorite, isFavorite, fetchFavorites } = useFavoritesStore();
-
+const [selectedSubcategory, setSelectedSubcategory] = useState("");
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
@@ -182,7 +182,8 @@ const CategoryListingPage = ({ section }) => {
     const fetchCategory = async () => {
       try {
         const res = await api.get(`/api/categories/${categorySlug}`);
-        setCategory(res.data.category);
+         setCategory(res.data.category);
+         console.log(category)
       } catch (err) {
         console.error("Failed to fetch category:", err);
       }
@@ -196,7 +197,7 @@ const CategoryListingPage = ({ section }) => {
       setIsLoading(true);
       try {
         const res = await api.get(
-          `/api/products?section=${section}&sort=${sort}&page=${currentPage}&limit=12`
+          `/api/products?section=${section}&sort=${sort}&page=${currentPage}&limit=12&subcategory=${selectedSubcategory}`
         );
         setProducts(res.data.products);
         setTotal(res.data.total);
@@ -208,7 +209,7 @@ const CategoryListingPage = ({ section }) => {
       }
     };
     fetchProducts();
-  }, [section, sort, currentPage, categorySlug]);
+  }, [section, sort, currentPage, categorySlug,selectedSubcategory]);
 
   // Fetch favorites if logged in
   useEffect(() => {
@@ -330,28 +331,46 @@ const CategoryListingPage = ({ section }) => {
         </motion.div>
 
         {/* ── Subcategory filter pills ── */}
-        {category?.subcategories && category.subcategories.length > 0 && (
-          <div className="flex gap-2 mb-8 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-            <button
-              className="flex-shrink-0 px-4 py-1.5 text-[9px] tracking-[0.25em] uppercase font-bold transition-all"
-              style={{ background: "#C8A96E", color: "#1A1814" }}
-            >
-              All
-            </button>
-            {category.subcategories.map((sub) => (
-              <button
-                key={sub._id}
-                className="flex-shrink-0 px-4 py-1.5 text-[9px] tracking-[0.25em] uppercase transition-all hover:bg-white/5"
-                style={{
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.45)",
-                }}
-              >
-                {sub.name}
-              </button>
-            ))}
-          </div>
-        )}
+     {category?.subcategories && category.subcategories.length > 0 && (
+  <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+    
+    {/* ✅ "All" Button now clears the subcategory filter */}
+    <button
+      onClick={() => {
+        setSelectedSubcategory("");
+        setCurrentPage(1); // Reset to page 1
+      }}
+      className="flex-shrink-0 px-4 py-1.5 text-[9px] tracking-[0.25em] uppercase font-bold"
+      style={{
+        // Dynamically color it if "All" is active
+        background: selectedSubcategory === "" ? "#C8A96E" : "transparent",
+        color: selectedSubcategory === "" ? "#1A1814" : "rgba(255,255,255,0.45)",
+        border: selectedSubcategory === "" ? "none" : "1px solid rgba(255,255,255,0.1)"
+      }}
+    >
+      All
+    </button>
+
+    {/* ✅ Subcategory pills now update the filter on click */}
+    {category.subcategories.map((sub) => (
+      <button
+        key={sub._id}
+        onClick={() => {
+          setSelectedSubcategory(sub.slug); // Set to this specific subcategory
+          setCurrentPage(1); // Reset to page 1
+        }}
+        className="flex-shrink-0 px-4 py-1.5 text-[9px] tracking-[0.25em] uppercase"
+        style={{
+          background: selectedSubcategory === sub.slug ? "#C8A96E" : "transparent",
+          color: selectedSubcategory === sub.slug ? "#1A1814" : "rgba(255,255,255,0.45)",
+          border: selectedSubcategory === sub.slug ? "none" : "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        {sub.name}
+      </button>
+    ))}
+  </div>
+)}
 
         {/* ── Product Grid ── */}
         {isLoading ? (

@@ -7,14 +7,13 @@ const createCustomization = async (req, res) => {
   try {
     const { productId, profileId, selections } = req.body;
 
-    if (!productId || !profileId || !selections) {
+    if (!productId || !selections) {
       return res.status(400).json({ message: "productId, profileId and selections are required" });
     }
 
     const customization = await CustomizationSelection.create({
       userId: req.user._id,
       productId,
-      profileId,
       selections,
     });
 

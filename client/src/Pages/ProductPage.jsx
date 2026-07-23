@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, ShoppingBag, ChevronLeft, ChevronRight, Sliders, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/axios";
@@ -9,14 +9,13 @@ import useFavoritesStore from "../store/favoritesStore";
 import { useTailorStore } from "../store/useTailorStore";
 import CustomizationModal from "../components/modals/CustomizationModal";
 import ProfileSelectorModal from "../components/modals/ProfileSelectorModal";
+
 const ProductPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-
   // Get section + categorySlug from URL query params
-  // e.g. /products/charcoal-suit?section=classics&category=suits-blazers
   const section = searchParams.get("section") || "classics";
   const categorySlug = searchParams.get("category") || "";
 
@@ -30,9 +29,10 @@ const ProductPage = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [imgIndex, setImgIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-const [showCustomizationModal, setShowCustomizationModal] = useState(false);
-const [showProfileModal, setShowProfileModal] = useState(false);
-const [customizationId, setCustomizationId] = useState(null)
+  const [showCustomizationModal, setShowCustomizationModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [customizationId, setCustomizationId] = useState(null);
+
   const itemIndex = allProducts.findIndex((p) => p.slug === slug);
   const totalItems = allProducts.length;
   const favorited = product ? isFavorite(product._id) : false;
@@ -45,6 +45,7 @@ const [customizationId, setCustomizationId] = useState(null)
         const res = await api.get(`/api/products/${slug}`);
         setProduct(res.data.product);
         setImgIndex(0);
+        setCustomizationId(null); // Reset configuration state cleanly when transitioning between products
       } catch (err) {
         console.error("Failed to fetch product:", err);
       } finally {
@@ -85,16 +86,29 @@ const [customizationId, setCustomizationId] = useState(null)
   };
 
   // Handle add to cart
-const handleAddToCart = () => {
-  if (!isLoggedIn) { navigate("/login"); return; }
-  setShowProfileModal(true);
-};
+  const handleAddToCart = () => {
+    if (!isLoggedIn) { 
+      navigate("/login"); 
+      return; 
+    }
+    
+    // Automatically intercept and open customizer if they try to skip options on a Made to Measure classic
+    if (section === "classics" && product?.isCustomizable && !customizationId) {
+      setShowCustomizationModal(true);
+      return;
+    }
+
+    setShowProfileModal(true);
+  };
 
   // Handle customize
-const handleCustomize = () => {
-  if (!isLoggedIn) { navigate("/login"); return; }
-  setShowCustomizationModal(true);
-};
+  const handleCustomize = () => {
+    if (!isLoggedIn) { 
+      navigate("/login"); 
+      return; 
+    }
+    setShowCustomizationModal(true);
+  };
 
   // Handle favorite toggle
   const handleFavorite = () => {
@@ -272,7 +286,7 @@ const handleCustomize = () => {
             <span className="text-xs tracking-widest text-white/40">{product.currency}</span>
           </div>
 
-          {/* Add to cart button */}
+          {/* Add to cart action area */}
           <div className="mb-2">
             {product.isCustomizable ? (
               <div className="flex gap-0">
@@ -285,14 +299,28 @@ const handleCustomize = () => {
                     border: "1px solid rgba(255,255,255,0.12)",
                   }}
                 >
-                  Add to Cart
+                  {customizationId ? "Assign Profile & Add" : "Add to Cart"}
                 </button>
                 <button
                   onClick={handleCustomize}
-                  className="px-4 py-3 text-xs font-bold tracking-[0.15em] uppercase transition-all duration-200 hover:bg-[#b8993e]"
-                  style={{ background: "#C8A96E", color: "#1A1814", borderLeft: "none" }}
+                  className="px-4 py-3 text-xs font-bold tracking-[0.15em] uppercase transition-all duration-200 flex items-center justify-center gap-1.5"
+                  style={{ 
+                    background: customizationId ? "#16A34A" : "#C8A96E", 
+                    color: customizationId ? "#FFFFFF" : "#1A1814", 
+                    borderLeft: "none" 
+                  }}
                 >
-                  Customizable
+                  {customizationId ? (
+                    <>
+                      <Check size={12} strokeWidth={3} />
+                      Configured
+                    </                    >
+                  ) : (
+                    <>
+                      <Sliders size={12} />
+                      Customize
+                    </>
+                  )}
                 </button>
               </div>
             ) : (
@@ -323,7 +351,7 @@ const handleCustomize = () => {
 
           {/* Description */}
           <div className="mb-5">
-            <p className="text-[9px] tracking-[0.35em] uppercase mb-2" style={{ color: "#C8A96E", fontWeight: 600 }}>
+            <p className="text-[9px] tracking-[0.35em] uppercase mb-2" style={{ color: "#C8A96E", fontSpread: 600 }}>
               About This Piece
             </p>
             <p className="text-xs leading-relaxed text-white/60">{product.description}</p>
@@ -331,11 +359,11 @@ const handleCustomize = () => {
 
           {/* Materials */}
           <div className="mb-6">
-            <p className="text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "#C8A96E", fontWeight: 600 }}>
+            <p className="text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "#C8A96E", fontSpread: 600 }}>
               Materials
             </p>
             <div className="flex flex-wrap gap-2">
-              {product.materials.map((mat, i) => (
+              {product.materials?.map((mat, i) => (
                 <span
                   key={i}
                   className="text-[9px] tracking-wider px-2.5 py-1 rounded-sm text-white/50"
@@ -372,7 +400,7 @@ const handleCustomize = () => {
           {/* Customers also bought */}
           {product.relatedProducts && product.relatedProducts.length > 0 && (
             <div>
-              <p className="text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "#C8A96E", fontWeight: 600 }}>
+              <p className="text-[9px] tracking-[0.35em] uppercase mb-3" style={{ color: "#C8A96E", fontSpread: 600 }}>
                 Customers Also Bought
               </p>
               <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
@@ -437,38 +465,33 @@ const handleCustomize = () => {
           fill={favorited ? "#C8A96E" : "none"}
         />
       </button>
-   
-  
-<AnimatePresence>
-  {showCustomizationModal && (
-    <CustomizationModal
-      product={product}
-      profileId={null}
-      onClose={() => setShowCustomizationModal(false)}
-      onSaved={(id) => {
-        setCustomizationId(id);
-        setShowCustomizationModal(false);
-        setShowProfileModal(true);
-      }}
-    />
-  )}
-  {showProfileModal && (
-    <ProfileSelectorModal
-      product={product}
-      customizationSelectionId={customizationId}
-      onClose={() => setShowProfileModal(false)}
-      onAdded={() => {
-        setShowProfileModal(false);
-        navigate("/cart");
-      }}
-    />
-  )}
-</AnimatePresence>
 
-    
-
-
-
+      {/* Modals Mounting Segment */}
+      <AnimatePresence>
+        {showCustomizationModal && (
+          <CustomizationModal
+            product={product}
+            profileId={null}
+            onClose={() => setShowCustomizationModal(false)}
+            onSaved={(id) => {
+              setCustomizationId(id);
+              setShowCustomizationModal(false);
+              setShowProfileModal(true);
+            }}
+          />
+        )}
+        {showProfileModal && (
+          <ProfileSelectorModal
+            product={product}
+            customizationSelectionId={customizationId}
+            onClose={() => setShowProfileModal(false)}
+            onAdded={() => {
+              setShowProfileModal(false);
+              navigate("/cart");
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
