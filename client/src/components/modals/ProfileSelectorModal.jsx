@@ -7,7 +7,7 @@ import useCartStore from "../../store/userCartStore";
 
 const ProfileSelectorModal = ({
   product,
-  customizationSelectionId = null,
+  customizationSelectionId ,
   onClose,
   onAdded,
 }) => {
@@ -20,7 +20,6 @@ const ProfileSelectorModal = ({
   const [isAdding, setIsAdding] = useState(false);
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
 const [showProfileModal, setShowProfileModal] = useState(false);
-const [customizationId, setCustomizationId] = useState(null);
 
 
   // Fetch user profiles
