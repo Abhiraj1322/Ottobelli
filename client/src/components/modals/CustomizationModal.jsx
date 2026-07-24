@@ -22,17 +22,25 @@ const CustomizationModal = ({ product, onClose, onSaved }) => {
     setSelections(prev => ({ ...prev, [category]: value }));
   };
 
-  const handleSave = async () => {
-    try {
-      const res = await api.post('/api/customizations', {
-        productId: product._id,
-        selections
-      });
-      onSaved(res.data._id); // Return saved ObjectId to parent
-    } catch (err) {
-      console.error('Failed to save customization:', err);
-    }
-  };
+const handleSave = async () => {
+  try {
+    const res = await api.post('/api/customizations', {
+      productId: product._id,
+      selections
+    });
+
+    // Grab _id inside the customization object
+    const customizationId = res.data.customization._id;
+
+    console.log("Extracted Customization ID:", customizationId); // Should print "6a618c0727e78f4136a12b4e"
+
+    // Pass it up to parent
+    onSaved(customizationId);
+
+  } catch (err) {
+    console.error('Failed to save customization:', err);
+  }
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">

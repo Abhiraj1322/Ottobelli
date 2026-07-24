@@ -37,13 +37,7 @@ const AccountPage = () => {
       path: "/account/profiles",
       count: null,
     },
-    {
-      icon: <Ruler size={16} strokeWidth={1.5} />,
-      label: "Measurements",
-      desc: "Update your body measurements",
-      path: "/account/profiles",
-      count: null,
-    },
+   
     {
       icon: <Package size={16} strokeWidth={1.5} />,
       label: "Order History",
