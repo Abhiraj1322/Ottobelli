@@ -5,7 +5,7 @@ const cartItemSchema = new mongoose.Schema(
     productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
 
     // Required for every item — forces "who is this for" selection at add-to-cart time
-    profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile", required: true },
+    profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile",  },
 
     // Only set when the product is customizable (Classics items)
     customizationSelectionId: {
