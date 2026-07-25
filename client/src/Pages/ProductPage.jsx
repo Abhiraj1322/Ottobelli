@@ -93,12 +93,13 @@ const ProductPage = () => {
 
    const isEverydayItem = 
     section === "everyday" || 
-    category === "t-shirts" || 
+    categorySlug === "t-shirts" || 
     product?.category === "everyday";
 
   if (isEverydayItem) {
     // Everyday items go straight to profile selection or cart
   await addToCart(product._id, null);
+  navigate("/cart")
     return;
   }
 // 2. Only intercept with Customization Modal for Made-to-Measure Classics
