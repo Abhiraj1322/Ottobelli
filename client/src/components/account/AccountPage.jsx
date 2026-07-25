@@ -49,7 +49,7 @@ const AccountPage = () => {
       icon: <Heart size={16} strokeWidth={1.5} />,
       label: "Saved Favourites",
       desc: "Your saved items",
-      path: "/account/favorites",
+      path: "/favorites",
       count: favorites.length > 0 ? favorites.length : null,
     },
     {

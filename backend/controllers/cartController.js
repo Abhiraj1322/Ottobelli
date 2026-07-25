@@ -35,7 +35,7 @@ const addToCart = async (req, res) => {
   try {
     const { productId, profileId, customizationSelectionId, quantity = 1 } = req.body;
 
-    if (!productId || !profileId) {
+    if (!productId) {
       return res.status(400).json({ message: "productId and profileId are required" });
     }
 

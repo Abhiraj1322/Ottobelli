@@ -16,9 +16,8 @@ const ProductPage = () => {
   const [searchParams] = useSearchParams();
 
   // Get section + categorySlug from URL query params
-  const section = searchParams.get("section") || "classics";
-  const categorySlug = searchParams.get("category") || "";
-
+      const section = searchParams.get("section") 
+  const categorySlug = searchParams.get("category")
   // Zustand
   const { isLoggedIn } = useAuthStore();
   const { addToCart } = useCartStore();
@@ -86,19 +85,30 @@ const ProductPage = () => {
   };
 
   // Handle add to cart
-  const handleAddToCart = () => {
+  const handleAddToCart = async() => {
     if (!isLoggedIn) { 
       navigate("/login"); 
       return; 
     }
-    
-    // Automatically intercept and open customizer if they try to skip options on a Made to Measure classic
-    if (section === "classics" && product?.isCustomizable && !customizationId) {
-      setShowCustomizationModal(true);
-      return;
-    }
 
-    setShowProfileModal(true);
+   const isEverydayItem = 
+    section === "everyday" || 
+    category === "t-shirts" || 
+    product?.category === "everyday";
+
+  if (isEverydayItem) {
+    // Everyday items go straight to profile selection or cart
+  await addToCart(product._id, null);
+    return;
+  }
+// 2. Only intercept with Customization Modal for Made-to-Measure Classics
+  if (section === "classics" && product?.isCustomizable && !customizationId) {
+    setShowCustomizationModal(true);
+    return;
+  }
+
+  setShowProfileModal(true);
+
   };
 
   // Handle customize
@@ -155,7 +165,7 @@ const ProductPage = () => {
         }}
       >
         {/* Back button */}
-        <div className="flex items-center gap-1.5 text-[9px] tracking-[0.2em] text-white/40">
+        <div className="flex items-center gap-1.5 text-[15px] tracking-[0.2em] text-white/40">
           <button
             onClick={() => navigate(`/${section}/${categorySlug}`)}
             className="hover:text-white/70 transition-colors"
