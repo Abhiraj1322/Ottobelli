@@ -21,6 +21,7 @@ import Navbar from "./components/layout/Navbar";
 import ProfilesPage from './components/account/ProfilesPage'
 import MeasurementsPage from './components/account/MeasurementsPage'
 import AccountPage from './components/account/AccountPage'
+import Footer from './components/layout/Footer'
 function App() {
   const [count, setCount] = useState(0)
 const{checkAuth}=useAuthStore()
@@ -34,11 +35,15 @@ const{checkAuth}=useAuthStore()
   return (
     <>
       <Navbar /> {/* Navbar only lives inside this wrapper! */}
-      <Outlet/> {/* This is where the pages will load */}
+      {/* main with flex-1 forces the footer to the bottom of short pages */}
+      <main className="flex-1 flex flex-col bg-amber-50">
+        <Outlet />
+      </main>
+      <Footer/>
     </>
   );
 };
-console.log("All Vite Env Variables:", import.meta.env);
+
 
   return (
  <BrowserRouter>

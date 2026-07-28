@@ -1,20 +1,41 @@
-import { ShoppingBag, User, Heart } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { ShoppingBag, User, Heart, ChevronDown, Check } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import useAuthStore from"../../store/userAuthStore";
+import useAuthStore from "../../store/userAuthStore";
 import useCartStore from "../../store/userCartStore";
 import useFavoritesStore from "../../store/favoritesStore";
+import useProfileStore from "../../store/userProfileStore"; // Make sure path matches your store setup
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Zustand stores
+  // ─── Zustand Stores ───────────────────────────────────────────────────────
   const { isLoggedIn } = useAuthStore();
   const { getItemCount } = useCartStore();
   const { favorites } = useFavoritesStore();
+  
+  // Profile Store
+  const { profiles, activeProfileId, switchProfile, getActiveProfile } = useProfileStore();
+  const activeProfile = getActiveProfile ? getActiveProfile() : null;
+
+  // ─── Local State & Refs ───────────────────────────────────────────────────
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const cartCount = getItemCount();
   const favCount = favorites.length;
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // ─── Build breadcrumbs from current URL ───────────────────────────────────
   const buildBreadcrumbs = () => {
@@ -61,23 +82,24 @@ const Navbar = () => {
 
   const breadcrumbs = buildBreadcrumbs();
 
-  // ─── Handle profile/user icon click ──────────────────────────────────────
+  // ─── Handle clicks ────────────────────────────────────────────────────────
   const handleProfileClick = () => {
-    if (isLoggedIn) {
-      navigate("/account");
-    } else {
+    if (!isLoggedIn) {
       navigate("/login");
+      return;
     }
+    // Toggle dropdown if logged in
+    setIsProfileDropdownOpen((prev) => !prev);
   };
 
-   const handleCartClick = () => {
+  const handleCartClick = () => {
     if (isLoggedIn) {
       navigate("/cart");
     } else {
       navigate("/login");
     }
   };
-  // ─── Handle favorites click ───────────────────────────────────────────────
+
   const handleFavoritesClick = () => {
     if (isLoggedIn) {
       navigate("/favorites");
@@ -86,7 +108,7 @@ const Navbar = () => {
     }
   };
 
-return (
+  return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8"
       style={{
@@ -96,7 +118,7 @@ return (
         fontFamily: "'Montserrat', sans-serif",
       }}
     >
-      {/* ── Breadcrumb — Hidden on mobile to prevent layout collision ── */}
+      {/* ── Breadcrumb — Hidden on mobile ── */}
       <div className="hidden md:flex items-center gap-1.5 text-[10px] tracking-[0.25em]">
         {breadcrumbs.map((crumb, i) => (
           <span key={i} className="flex items-center gap-1.5">
@@ -115,7 +137,7 @@ return (
         ))}
       </div>
 
-      {/* Spacer for mobile layout alignment to push brand logo perfectly center */}
+      {/* Mobile Spacer */}
       <div className="w-[85px] md:hidden" />
 
       {/* ── Center wordmark ── */}
@@ -129,13 +151,93 @@ return (
 
       {/* ── Right icons ── */}
       <div className="flex items-center gap-4 md:gap-5 z-10">
-        {/* User / Profile */}
-        <button
-          onClick={handleProfileClick}
-          className="text-white/40 hover:text-white/80 transition-colors duration-200 p-1"
-        >
-          <User size={15} strokeWidth={1.5} />
-        </button>
+        
+        {/* User / Profile Selector Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={handleProfileClick}
+            className="flex items-center gap-1.5 text-white/40 hover:text-white/80 transition-colors duration-200 p-1 text-[10px] tracking-widest uppercase font-medium"
+          >
+            <User size={15} strokeWidth={1.5} />
+            {isLoggedIn && activeProfile && (
+              <span className="hidden sm:inline text-white/70 max-w-[80px] truncate">
+                {activeProfile.displayName || activeProfile.name}
+              </span>
+            )}
+            {isLoggedIn && (
+              <ChevronDown
+                size={11}
+                className={`transition-transform duration-200 ${
+                  isProfileDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            )}
+          </button>
+
+          {/* Profile Switcher Dropdown Menu */}
+          {isLoggedIn && isProfileDropdownOpen && (
+            <div
+              className="absolute right-0 mt-2 w-56 rounded-none py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+              style={{
+                background: "#09090E",
+                border: "1px solid rgba(255,255,255,0.12)",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.8)",
+              }}
+            >
+              <div className="px-3 py-1.5 border-b border-white/10 mb-1">
+                <p className="text-[9px] uppercase tracking-[0.2em] text-[#C8A96E]">
+                  Active Fitting Profile
+                </p>
+              </div>
+
+              {/* Profiles List */}
+              <div className="max-h-48 overflow-y-auto">
+                {profiles && profiles.length > 0 ? (
+                  profiles.map((profile) => {
+                    const isActive = profile._id === activeProfileId;
+                    return (
+                      <button
+                        key={profile._id}
+                        onClick={() => {
+                          switchProfile(profile._id);
+                          setIsProfileDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-[11px] flex items-center justify-between transition-colors duration-150 ${
+                          isActive
+                            ? "bg-white/10 text-white font-medium"
+                            : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                        }`}
+                      >
+                        <span className="tracking-wider truncate max-w-[140px]">
+                          {profile.displayName || profile.name}
+                        </span>
+                        {isActive && <Check size={13} className="text-[#C8A96E]" />}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="px-3 py-2 text-[10px] text-white/30 italic">
+                    No saved profiles
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Links */}
+              <div className="border-t border-white/10 mt-1 pt-1 px-1">
+                <button
+                  onClick={() => {
+                    setIsProfileDropdownOpen(false);
+                    navigate("/account");
+                  }}
+                  className="w-full text-left px-2 py-1.5 text-[10px] tracking-[0.15em] uppercase text-white/40 hover:text-white/90 transition-colors flex items-center justify-between"
+                >
+                  <span>Account Dashboard</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Favorites */}
         <button
@@ -168,6 +270,7 @@ return (
             </span>
           )}
         </button>
+
       </div>
     </nav>
   );

@@ -158,6 +158,29 @@ const deleteProfile = async (req, res) => {
   }
 };
  
+const switchActiveProfile = async (req, res) => {
+  try {
+    const { profileId } = req.body;
+
+    // Verify the profile exists and belongs to this user
+    const profile = await Profile.findOne({ _id: profileId, userId: req.user._id });
+    if (!profile) {
+      return res.status(404).json({ success: false, message: "Profile not found" });
+    }
+
+    // Update user's active profile reference
+    await User.findByIdAndUpdate(req.user._id, { activeProfileId: profileId });
+
+    res.status(200).json({
+      success: true,
+      message: "Active profile switched successfully",
+      activeProfileId: profile._id,
+      activeProfile: profile
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
 module.exports = {
   getProfiles,
   getProfileById,
@@ -165,4 +188,5 @@ module.exports = {
   updateProfile,
   updateMeasurements,
   deleteProfile,
+  switchActiveProfile,
 };

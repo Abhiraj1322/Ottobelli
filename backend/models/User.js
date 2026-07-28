@@ -23,6 +23,12 @@
           isDefault: { type: Boolean, default: false },
         },
       ],
+      // Reference to the currently active profile
+  activeProfileId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Profile", 
+    default: null 
+  },
   
       orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
   

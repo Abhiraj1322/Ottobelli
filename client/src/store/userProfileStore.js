@@ -23,7 +23,19 @@ fetchProfiles: async () => {
     const target = get().profiles.find(p => p._id === profileId);
     set({ activeProfile: target || null });
   },
+ // Action: Switch selected profile
+  switchProfile: async (profileId) => {
+    // 1. Optimistically update local UI state immediately
+    set({ activeProfileId: profileId });
+    localStorage.setItem("activeProfileId", profileId);
 
+    // 2. Persist change to database
+    try {
+      await axios.put("/api/profiles/switch", { profileId });
+    } catch (error) {
+      console.error("Failed to update active profile on server:", error);
+    }
+  },
   updateMeasurements: async (profileId, measurements) => {
     try {
       const res = await axios.put(`/api/profiles/${profileId}/measurements`, { measurements });
