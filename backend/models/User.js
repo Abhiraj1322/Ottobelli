@@ -24,6 +24,8 @@
         },
       ],
       // Reference to the currently active profile
+
+profiles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Profile" }],
   activeProfileId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: "Profile", 
@@ -34,7 +36,17 @@
   
       refreshToken: { type: String }, // for JWT refresh flow
     },
-    { timestamps: true }
+    { timestamps: true ,
+      toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+    }
   );
+  // Virtual field: easily populate the active profile directly
+userSchema.virtual("activeProfile", {
+  ref: "Profile",
+  localField: "activeProfileId",
+  foreignField: "_id",
+  justOne: true,
+});
   
   module.exports = mongoose.model("User", userSchema);

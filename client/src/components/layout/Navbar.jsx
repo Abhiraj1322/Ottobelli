@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/userAuthStore";
 import useCartStore from "../../store/userCartStore";
 import useFavoritesStore from "../../store/favoritesStore";
-import useProfileStore from "../../store/userProfileStore"; // Make sure path matches your store setup
+import useProfileStore from "../../store/userProfileStore";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -16,15 +16,29 @@ const Navbar = () => {
   const { favorites } = useFavoritesStore();
   
   // Profile Store
-  const { profiles, activeProfileId, switchProfile, getActiveProfile } = useProfileStore();
+  const { 
+    profiles, 
+    activeProfileId, 
+    switchProfile, 
+    getActiveProfile,
+    fetchProfiles 
+  } = useProfileStore();
+
   const activeProfile = getActiveProfile ? getActiveProfile() : null;
 
   // ─── Local State & Refs ───────────────────────────────────────────────────
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const cartCount = getItemCount();
-  const favCount = favorites.length;
+  const cartCount = getItemCount ? getItemCount() : 0;
+  const favCount = favorites ? favorites.length : 0;
+
+  // Fetch profiles automatically when logged in
+  useEffect(() => {
+    if (isLoggedIn && fetchProfiles) {
+      fetchProfiles();
+    }
+  }, [isLoggedIn, fetchProfiles]);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -194,12 +208,12 @@ const Navbar = () => {
               <div className="max-h-48 overflow-y-auto">
                 {profiles && profiles.length > 0 ? (
                   profiles.map((profile) => {
-                    const isActive = profile._id === activeProfileId;
+                    const isActive = profile._id === (activeProfileId || activeProfile?._id);
                     return (
                       <button
                         key={profile._id}
                         onClick={() => {
-                          switchProfile(profile._id);
+                          if (switchProfile) switchProfile(profile._id);
                           setIsProfileDropdownOpen(false);
                         }}
                         className={`w-full text-left px-3 py-2 text-[11px] flex items-center justify-between transition-colors duration-150 ${

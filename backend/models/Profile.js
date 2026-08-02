@@ -16,7 +16,7 @@ const profileSchema = new mongoose.Schema(
       hip: { type: Number, default: null },
       bicep: { type: Number, default: null },
       wrist: { type: Number, default: null },
-      waist: { type: Number, default: null },
+      waist: { type: Number, default: null }, 
       legs: { type: Number, default: null },
       crotch: { type: Number, default: null },
       thighs: { type: Number, default: null },
