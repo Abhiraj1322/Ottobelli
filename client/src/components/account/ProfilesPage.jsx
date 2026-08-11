@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Plus, Ruler, Trash2, ChevronRight } from "lucide-react";
 import api from "../../api/axios";
-
+import useProfileStore from "../../store/userProfileStore";
 const ProfilesPage = () => {
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState([]);
@@ -12,7 +12,7 @@ const ProfilesPage = () => {
   const [newProfileName, setNewProfileName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-
+ const { deleteProfile } = useProfileStore();
   // Fetch profiles
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -47,18 +47,23 @@ const ProfilesPage = () => {
   };
 
   // Delete profile
-  const handleDelete = async (profileId) => {
+ const handleDelete = async (profileId) => {
+    if (!profileId) return;
+
     setDeletingId(profileId);
     try {
-      await api.delete(`/api/profiles/${profileId}`);
-      setProfiles((prev) => prev.filter((p) => p._id !== profileId));
+      // 2. Call Zustand deleteProfile (handles API request + updates Zustand state + localStorage)
+      await deleteProfile(profileId);
+      // 2. IMMEDIATELY update your component's local state so the UI updates without a refresh
+    setProfiles((prevProfiles) =>
+      prevProfiles.filter((profile) => profile._id !== profileId)
+    );
     } catch (err) {
       console.error("Failed to delete profile:", err);
     } finally {
       setDeletingId(null);
     }
   };
-
   // Count filled measurements
   const getFilledCount = (measurements) => {
     return Object.values(measurements || {}).filter(

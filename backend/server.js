@@ -10,7 +10,8 @@ const customizationRoutes = require("./routes/customizationRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const favoritesRoutes = require("./routes/favoritesRoutes.js");
-
+const path =require('path')
+const uploadRoutes = require("../backend/routes/uploadRoutes.js")
 // Load environment variables
 dotenv.config();
 
@@ -51,7 +52,8 @@ app.use("/api/profiles", profileRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/customizations", customizationRoutes);
 app.use("/api/cart", cartRoutes);
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/upload", uploadRoutes);
 // Basic Test Route
 app.get('/', (req, res) => {
   res.send('Ottobelli API is running successfully.');

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../api/axios";
 import {create} from'zustand'
 const userProfileStore= create((set,get)=>({
     profiles: [],
@@ -11,7 +11,6 @@ const userProfileStore= create((set,get)=>({
     try {
       const res = await axios.get("/api/profiles");
       const profiles = res.data.profiles || res.data;
-
       // Check local storage for previously saved active ID, or pick first profile
       const savedActiveId = localStorage.getItem("activeProfileId");
       const active =
@@ -29,7 +28,8 @@ const userProfileStore= create((set,get)=>({
       });
     }
   },
-
+// Synchronous action to set active profile directly
+  setActiveProfile: (profile) => set({ activeProfile: profile }),
   // 2. Switch active profile (Optimistic update + rollback on error)
   switchProfile: async (profileId) => {
     const previousActive = get().activeProfile;
@@ -88,30 +88,59 @@ const userProfileStore= create((set,get)=>({
   },
 
   // 4. Update measurements for a specific profile
-  updateMeasurements: async (profileId, measurements) => {
+updateMeasurements: async (profileId, measurements) => {
+  try {
+    const res = await axios.put(`/api/profiles/${profileId}/measurements`, {
+      measurements,
+    });
+    const updatedProfile = res.data.profile || res.data;
+
+    set((state) => {
+      // 1. Convert profileId to string so ID comparisons always match safely
+      const targetId = String(profileId);
+
+      // 2. Update the profile inside the profiles array
+      const updatedProfiles = state.profiles.map((p) =>
+        String(p._id) === targetId ? updatedProfile : p
+      );
+
+      return {
+        profiles: updatedProfiles,
+        // 3. FORCE activeProfile to updatedProfile directly!
+        activeProfile: updatedProfile,
+      };
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("Failed to update measurements:", err);
+    return {
+      success: false,
+      error: err.response?.data?.message || "Failed to update measurements",
+    };
+  }
+},
+// 1. Update Profile Details (displayName, preferredFit, etc.)
+  updateProfileDetails: async (profileId, details) => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await axios.put(`/api/profiles/${profileId}/measurements`, {
-        measurements,
-      });
+      const res = await axios.put(`/api/profiles/${profileId}`, details);
       const updatedProfile = res.data.profile || res.data;
 
       set((state) => ({
+        isLoading: false,
         profiles: state.profiles.map((p) =>
-          p._id === profileId ? updatedProfile : p
+          String(p._id) === String(profileId) ? updatedProfile : p
         ),
-        activeProfile:
-          state.activeProfile?._id === profileId
-            ? updatedProfile
-            : state.activeProfile,
+        // Direct assignment ensures activeProfile is never left as null
+        activeProfile: updatedProfile,
       }));
 
-      return { success: true };
+      return { success: true, profile: updatedProfile };
     } catch (err) {
-      console.error("Failed to update measurements:", err);
-      return {
-        success: false,
-        error: err.response?.data?.message || "Failed to update measurements",
-      };
+      const errorMessage = err.response?.data?.message || err.message;
+      set({ isLoading: false, error: errorMessage });
+      return { success: false, error: errorMessage };
     }
   },
 

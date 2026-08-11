@@ -1,46 +1,38 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { ShoppingBag, User, Heart, ChevronDown, Check } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/userAuthStore";
 import useCartStore from "../../store/userCartStore";
 import useFavoritesStore from "../../store/favoritesStore";
-import useProfileStore from "../../store/userProfileStore";
+import userProfileStore from "../../store/userProfileStore";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dropdownRef = useRef(null);
+
+  // ─── Dropdown State ──────────────────────────────────────────────────────
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   // ─── Zustand Stores ───────────────────────────────────────────────────────
   const { isLoggedIn } = useAuthStore();
   const { getItemCount } = useCartStore();
   const { favorites } = useFavoritesStore();
-  
-  // Profile Store
-  const { 
-    profiles, 
-    activeProfileId, 
-    switchProfile, 
-    getActiveProfile,
-    fetchProfiles 
-  } = useProfileStore();
 
-  const activeProfile = getActiveProfile ? getActiveProfile() : null;
-
-  // ─── Local State & Refs ───────────────────────────────────────────────────
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const profileStore = userProfileStore();
+  const { profiles, activeProfile, switchProfile, fetchProfiles, isLoading } = profileStore;
 
   const cartCount = getItemCount ? getItemCount() : 0;
   const favCount = favorites ? favorites.length : 0;
 
-  // Fetch profiles automatically when logged in
   useEffect(() => {
+    // Trigger profile fetch if user is logged in
     if (isLoggedIn && fetchProfiles) {
       fetchProfiles();
     }
   }, [isLoggedIn, fetchProfiles]);
 
-  // Close profile dropdown when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -53,10 +45,7 @@ const Navbar = () => {
 
   // ─── Build breadcrumbs from current URL ───────────────────────────────────
   const buildBreadcrumbs = () => {
-    const crumbs = [
-      { label: "OTTOBELLI", action: () => navigate("/") },
-    ];
-
+    const crumbs = [{ label: "OTTOBELLI", action: () => navigate("/") }];
     const path = location.pathname;
 
     if (path.startsWith("/classics")) {
@@ -67,17 +56,15 @@ const Navbar = () => {
     }
     if (path.startsWith("/classics/") && path.split("/").length >= 3) {
       const categorySlug = path.split("/")[2];
-      const label = categorySlug.replace(/-/g, " ").toUpperCase();
       crumbs.push({
-        label,
+        label: categorySlug.replace(/-/g, " ").toUpperCase(),
         action: () => navigate(`/classics/${categorySlug}`),
       });
     }
     if (path.startsWith("/everyday/") && path.split("/").length >= 3) {
       const categorySlug = path.split("/")[2];
-      const label = categorySlug.replace(/-/g, " ").toUpperCase();
       crumbs.push({
-        label,
+        label: categorySlug.replace(/-/g, " ").toUpperCase(),
         action: () => navigate(`/everyday/${categorySlug}`),
       });
     }
@@ -96,13 +83,12 @@ const Navbar = () => {
 
   const breadcrumbs = buildBreadcrumbs();
 
-  // ─── Handle clicks ────────────────────────────────────────────────────────
-  const handleProfileClick = () => {
+  // ─── Handlers ─────────────────────────────────────────────────────────────
+  const handleUserClick = () => {
     if (!isLoggedIn) {
       navigate("/login");
       return;
     }
-    // Toggle dropdown if logged in
     setIsProfileDropdownOpen((prev) => !prev);
   };
 
@@ -165,16 +151,15 @@ const Navbar = () => {
 
       {/* ── Right icons ── */}
       <div className="flex items-center gap-4 md:gap-5 z-10">
-        
-        {/* User / Profile Selector Dropdown */}
+        {/* User Account / Profile Switcher Button */}
         <div className="relative" ref={dropdownRef}>
           <button
-            onClick={handleProfileClick}
+            onClick={handleUserClick}
             className="flex items-center gap-1.5 text-white/40 hover:text-white/80 transition-colors duration-200 p-1 text-[10px] tracking-widest uppercase font-medium"
           >
             <User size={15} strokeWidth={1.5} />
             {isLoggedIn && activeProfile && (
-              <span className="hidden sm:inline text-white/70 max-w-[80px] truncate">
+              <span className="hidden sm:inline text-white/70 max-w-[90px] truncate">
                 {activeProfile.displayName || activeProfile.name}
               </span>
             )}
@@ -188,32 +173,44 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Profile Switcher Dropdown Menu */}
+          {/* Profile Switcher Dropdown */}
           {isLoggedIn && isProfileDropdownOpen && (
             <div
-              className="absolute right-0 mt-2 w-56 rounded-none py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+              className="absolute right-0 mt-2 w-56 py-2 z-50 rounded-xs"
               style={{
                 background: "#09090E",
                 border: "1px solid rgba(255,255,255,0.12)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.8)",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.85)",
               }}
             >
-              <div className="px-3 py-1.5 border-b border-white/10 mb-1">
-                <p className="text-[9px] uppercase tracking-[0.2em] text-[#C8A96E]">
-                  Active Fitting Profile
+              <div className="px-3 py-1.5 border-b border-white/10 mb-1 flex justify-between items-center">
+                <p className="text-[9px] uppercase tracking-[0.2em] text-[#C8A96E] font-semibold">
+                  Fitting Profiles
                 </p>
+                <span className="text-[8px] text-white/30 uppercase tracking-widest">
+                  {profiles?.length || 0} Saved
+                </span>
               </div>
 
               {/* Profiles List */}
               <div className="max-h-48 overflow-y-auto">
-                {profiles && profiles.length > 0 ? (
+                {isLoading ? (
+                  <div className="px-3 py-2 text-[10px] text-white/40 italic">
+                    Loading profiles...
+                  </div>
+                ) : profiles && profiles.length > 0 ? (
                   profiles.map((profile) => {
-                    const isActive = profile._id === (activeProfileId || activeProfile?._id);
+                    const profileId = profile._id || profile.id;
+                    const activeId = activeProfile?._id || activeProfile?.id;
+                    const isActive = Boolean(
+                      profileId && activeId && String(profileId) === String(activeId)
+                    );
+
                     return (
                       <button
-                        key={profile._id}
+                        key={profileId}
                         onClick={() => {
-                          if (switchProfile) switchProfile(profile._id);
+                          if (switchProfile) switchProfile(profileId);
                           setIsProfileDropdownOpen(false);
                         }}
                         className={`w-full text-left px-3 py-2 text-[11px] flex items-center justify-between transition-colors duration-150 ${
@@ -223,7 +220,7 @@ const Navbar = () => {
                         }`}
                       >
                         <span className="tracking-wider truncate max-w-[140px]">
-                          {profile.displayName || profile.name}
+                          {profile.displayName || profile.name || "Unnamed Profile"}
                         </span>
                         {isActive && <Check size={13} className="text-[#C8A96E]" />}
                       </button>
@@ -236,14 +233,14 @@ const Navbar = () => {
                 )}
               </div>
 
-              {/* Footer Links */}
-              <div className="border-t border-white/10 mt-1 pt-1 px-1">
+              {/* Navigation Options */}
+              <div className="border-t border-white/10 mt-1 pt-1">
                 <button
                   onClick={() => {
                     setIsProfileDropdownOpen(false);
                     navigate("/account");
                   }}
-                  className="w-full text-left px-2 py-1.5 text-[10px] tracking-[0.15em] uppercase text-white/40 hover:text-white/90 transition-colors flex items-center justify-between"
+                  className="w-full text-left px-3 py-1.5 text-[10px] tracking-[0.15em] uppercase text-white/40 hover:text-white/90 transition-colors flex items-center justify-between"
                 >
                   <span>Account Dashboard</span>
                   <span>→</span>
@@ -284,7 +281,6 @@ const Navbar = () => {
             </span>
           )}
         </button>
-
       </div>
     </nav>
   );

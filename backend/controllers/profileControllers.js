@@ -35,12 +35,19 @@ const getProfileById = async (req, res) => {
  
 // @route POST /api/profiles
 // @desc  Create a new profile
- const createProfile = async (req, res) => {
+const createProfile = async (req, res) => {
   try {
     const userId = req.user._id; // Extracted from Auth middleware
-    const { displayName, measurements, preferredFit, fabricsToAvoid, specialInstructions } = req.body;
+    const { 
+      displayName, 
+      measurements, 
+      preferredFit, 
+      fabricsToAvoid, 
+      specialInstructions,
+      referencePhotos // 👈 1. Destructure referencePhotos array from req.body
+    } = req.body;
 
-    // 1. Create the Profile document
+    // 2. Pass referencePhotos into Profile.create
     const newProfile = await Profile.create({
       userId,
       displayName,
@@ -48,9 +55,10 @@ const getProfileById = async (req, res) => {
       preferredFit,
       fabricsToAvoid,
       specialInstructions,
+      referencePhotos: referencePhotos || [], // 👈 Default to empty array if none provided
     });
 
-    // 2. Add profile to user's array & set as active if no active profile exists
+    // 3. Add profile to user's array & set as active if no active profile exists
     const user = await User.findById(userId);
     user.profiles.push(newProfile._id);
 
@@ -70,6 +78,8 @@ const getProfileById = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+    // 3. Add profile to user's array & set as active if no active profile exists
+
  
 // @route PUT /api/profiles/:id
 // @desc  Update profile display name and details
@@ -108,31 +118,40 @@ const updateProfile = async (req, res) => {
 const updateMeasurements = async (req, res) => {
   try {
     const profile = await Profile.findById(req.params.id);
- 
+
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }
- 
+
     // Make sure profile belongs to logged in user
     if (profile.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized to update this profile" });
     }
- 
-    // Only update fields that were passed in — leave others as they are
+
+    // 1. Look inside req.body.measurements first (fallback to req.body if flat)
+    const data = req.body.measurements || req.body;
+
+    // 2. Allowed measurement fields
     const measurementFields = [
       "neckCollar", "chest", "shoulderWidth", "sleeve",
       "torso", "stomach", "hip", "bicep",
       "wrist", "waist", "legs", "crotch", "thighs", "knees",
     ];
- 
+
+    // 3. Update values from 'data' (not req.body directly)
     measurementFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        profile.measurements[field] = req.body[field];
+      if (data[field] !== undefined) {
+        const val = data[field];
+        profile.measurements[field] = (val === null || val === "") ? null : Number(val);
       }
     });
- 
+
+    // 4. Mark nested object as modified so Mongoose saves changes
+    profile.markModified("measurements");
+
+    // 5. Save updated profile
     const updatedProfile = await profile.save();
- 
+
     res.status(200).json({
       profile: updatedProfile,
       completionStatus: updatedProfile.completionStatus, // "8/14 filled"
@@ -141,14 +160,15 @@ const updateMeasurements = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
- 
 // @route DELETE /api/profiles/:id
 // @desc  Delete a profile
 const deleteProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { profileId } = req.params;
-
+const profileId = req.params.id || req.params.profileId;
+if (!profileId) {
+  return res.status(400).json({ success: false, message: "Profile ID missing in request params" });
+}
     // 1. Remove profile from DB
     await Profile.findOneAndDelete({ _id: profileId, userId });
 

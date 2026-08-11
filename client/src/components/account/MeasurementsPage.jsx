@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { X, ChevronRight, Play, Plus, Users, ShieldAlert, FileText } from "lucide-react";
+import { useState, useEffect,useRef } from "react";
+import { X, ChevronRight, Play, Plus, Users, ShieldAlert, FileText,Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import useAuthStore from "../../store/userAuthStore";
-
+import useUploadStore from "../../store/useUploadStore";
+import useProfileStore from "../../store/userProfileStore"
 // ─── Measurement definitions ──────────────────────────────────────────────
 const upperBodyMeasurements = [
   { key: "neckCollar", label: "Neck / Collar", hint: "Just below the Adam's apple, two fingers between tape. Follow the neck's curvature." },
@@ -89,7 +90,7 @@ const BodyDiagram = ({ highlighted = [] }) => {
 const MeasurementsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-
+  
   const [profiles, setProfiles] = useState([]);
   const [activeProfileId, setActiveProfileId] = useState(null);
   const [bodyTab, setBodyTab] = useState("upper");
@@ -98,10 +99,20 @@ const MeasurementsPage = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-
+const [fabricsToAvoid, setFabricsToAvoid] = useState("");
+const [specialInstructions, setSpecialInstructions] = useState("");
   // Mobile Navigation Tab State ("profiles", "diagram", "form")
   const [mobileTab, setMobileTab] = useState("form");
+const {activeProfile, updateProfileDetails,updateMeasurements,switchProfile} = useProfileStore();
+// 2. Initialize state using activeProfile (now safely in scope)
+  const [displayName, setDisplayName] = useState(activeProfile?.displayName || "");
 
+  // 3. Keep state synced when switching between profiles
+  useEffect(() => {
+    if (activeProfile?.displayName) {
+      setDisplayName(activeProfile.displayName);
+    }
+  }, [activeProfile]);
   // Fetch profiles from backend
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -119,8 +130,17 @@ const MeasurementsPage = () => {
     };
     fetchProfiles();
   }, []);
-
-  const activeProfile = profiles.find((p) => p._id === activeProfileId) ?? profiles[0];
+// Clean up blob URLs when component unmounts or active profile changes
+  useEffect(() => {
+    return () => {
+      Object.values(photos).forEach((photo) => {
+        if (photo?.previewUrl) {
+          URL.revokeObjectURL(photo.previewUrl);
+        }
+      });
+    };
+  }, [activeProfileId]);
+const currentProfile = activeProfile || profiles.find((p) => p._id === activeProfileId) || profiles[0];
   const currentMeasurements = bodyTab === "upper" ? upperBodyMeasurements : lowerBodyMeasurements;
   const activeMeasurementDef = activeMeasurement
     ? allMeasurements.find((m) => m.key === activeMeasurement)
@@ -132,58 +152,195 @@ const MeasurementsPage = () => {
 
   const highlightedBodyParts = activeMeasurement ? highlightedParts[activeMeasurement] ?? [] : [];
 
-  // Save measurement to backend
+
+  // update measurement///
   const saveEntry = async () => {
-    if (!activeMeasurement || !entryValue || !activeProfileId) return;
+  if (!activeMeasurement || !entryValue || !activeProfileId) return;
+  setIsSaving(true);
+
+  const numericValue = parseFloat(entryValue);
+console.log("1. Saving measurement:", { activeProfileId, activeMeasurement, numericValue })
+  try {
+    // 1. Call Zustand store action
+    // Note: Send { [activeMeasurement]: numericValue } so the backend receives the updated field object
+    const result = await updateMeasurements(activeProfileId, {
+      [activeMeasurement]: numericValue,
+    });
+console.log("2. Result from updateMeasurements:", result);
+    if (!result.success) {
+      console.error("Failed to save:", result.error);
+      return;
+    }
+
+    // 2. Clear input value for next entry
+    setEntryValue("");
+
+    // 3. Navigate to Next Measurement Step
+    const idx = allMeasurements.findIndex((m) => m.key === activeMeasurement);
+
+    if (idx < allMeasurements.length - 1) {
+      // Move to next measurement key
+      setActiveMeasurement(allMeasurements[idx + 1].key);
+    } else {
+      // Reached the last measurement in the sequence
+      setActiveMeasurement(null);
+    }
+  } catch (err) {
+    console.error("Failed to save measurement:", err);
+  } finally {
+    setIsSaving(false);
+  }
+};
+
+// Submit profile details & photos
+  const handleSaveProfile = async () => {
+    if (!activeProfile?._id) return;
+
     setIsSaving(true);
+
     try {
-      await api.put(`/api/profiles/${activeProfileId}/measurements`, {
-        [activeMeasurement]: parseFloat(entryValue),
+      // 1. Separate existing image URLs from newly selected files
+      const existingUrls = photos.filter((p) => p.isExisting).map((p) => p.serverUrl);
+      const newFiles = photos.filter((p) => !p.isExisting && p.file).map((p) => p.file);
+
+      let newlyUploadedUrls = [];
+
+      // 2. Optional: If you have a backend endpoint to upload raw files, execute it here
+      if (newFiles.length > 0) {
+        const formData = new FormData();
+        newFiles.forEach((file) => formData.append("images", file));
+
+        /* Example upload request if handling multipart backend upload:
+        const uploadRes = await axios.post("/api/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        newlyUploadedUrls = uploadRes.data.urls; 
+        */
+
+        // Direct preview fallback if uploading via base64 or external pipeline:
+        newlyUploadedUrls = newFiles.map((file) => URL.createObjectURL(file));
+      }
+
+      // 3. Combine existing URLs and newly uploaded URLs
+      const finalReferencePhotos = [...existingUrls, ...newlyUploadedUrls];
+
+      // 4. Format fabrics to avoid into array
+      const fabricsArray = fabricsToAvoid
+        ? fabricsToAvoid.split(",").map((item) => item.trim()).filter(Boolean)
+        : [];
+
+      // 5. Send updated details to Zustand action
+      const result = await updateProfileDetails(activeProfile._id, {
+        displayName,
+        fabricsToAvoid: fabricsArray,
+        specialInstructions,
+        referencePhotos: finalReferencePhotos,
       });
 
-      // Update local state
-      setProfiles((prev) =>
-        prev.map((p) =>
-          p._id === activeProfileId
-            ? {
-                ...p,
-                measurements: {
-                  ...p.measurements,
-                  [activeMeasurement]: parseFloat(entryValue),
-                },
-              }
-            : p
-        )
-      );
-
-      // Move to next measurement
-      const idx = allMeasurements.findIndex((m) => m.key === activeMeasurement);
-      if (idx < allMeasurements.length - 1) {
-        setActiveMeasurement(allMeasurements[idx + 1].key);
-        setEntryValue("");
+      if (result.success) {
+        alert("Profile details saved successfully!");
       } else {
-        setActiveMeasurement(null);
-        setEntryValue("");
+        alert(result.error || "Failed to save profile details");
       }
     } catch (err) {
-      console.error("Failed to save measurement:", err);
+      console.error("Save profile error:", err);
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Add new profile
-  const handleAddProfile = async () => {
-    const name = prompt("Enter profile name (e.g. Brother, Son):");
-    if (!name) return;
-    try {
-      const res = await api.post("/api/profiles", { displayName: name });
-      setProfiles((prev) => [...prev, res.data.profile]);
-      setActiveProfileId(res.data.profile._id);
-    } catch (err) {
-      console.error("Failed to create profile:", err);
+
+
+// -------------------------------------------------------------
+ const fileInputRef = useRef(null);
+  
+  // Local state for instant image preview items
+  const [photos, setPhotos] = useState([]);
+
+  // Zustand state and upload action
+  const { uploadPhotos, loading, error } = useUploadStore();
+
+  // Cleanup object URLs to avoid browser memory leaks when component unmounts
+  useEffect(() => {
+    return () => {
+      photos.forEach((photo) => {
+        if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
+      });
+    };
+  }, [photos]);
+
+  const handleFileChange = async (e) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles || selectedFiles.length === 0) return;
+
+    const fileArray = Array.from(selectedFiles);
+
+    // 1. Create immediate local preview objects
+    const newPhotos = fileArray.map((file) => ({
+      id: `${Date.now()}-${Math.random()}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+      serverUrl: null,
+    }));
+
+    // Append to UI grid immediately
+    setPhotos((prev) => [...prev, ...newPhotos]);
+
+    // 2. Upload to Express backend via Zustand store
+    const uploadedUrls = await uploadPhotos(fileArray);
+
+    if (uploadedUrls) {
+      // 3. Attach backend URLs to local items once finished
+      setPhotos((prev) =>
+        prev.map((photo) => {
+          const matchingIndex = fileArray.indexOf(photo.file);
+          if (matchingIndex !== -1 && uploadedUrls[matchingIndex]) {
+            return { ...photo, serverUrl: uploadedUrls[matchingIndex] };
+          }
+          return photo;
+        })
+      );
     }
+
+    // Clear input value so selecting the same file again triggers onChange
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  const handleRemovePhoto = (idToRemove) => {
+    setPhotos((prev) => {
+      const target = prev.find((p) => p.id === idToRemove);
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl); // Revoke memory
+      }
+      return prev.filter((p) => p.id !== idToRemove);
+    });
+  };
+  
+  // Add new profile
+const handleAddProfile = async () => {
+  const name = prompt("Enter profile name (e.g. Brother, Son):");
+  if (!name) return;
+
+  try {
+    const res = await api.post("/api/profiles", { displayName: name });
+    const newProfile = res.data.profile;
+
+    // 1. Add new profile to Zustand store & set it active
+    useProfileStore.setState((state) => ({
+      profiles: [...state.profiles, newProfile],
+      activeProfile: newProfile, // 👈 Makes this the active profile immediately
+    }));
+
+    // 2. Set active profile ID for UI highlighting
+    setActiveProfileId(newProfile._id);
+    setMobileTab("form");
+  } catch (err) {
+    console.error("Failed to create profile:", err);
+  }
+};
+  
+
+  
 
   if (isLoading) {
     return (
@@ -192,6 +349,7 @@ const MeasurementsPage = () => {
       </div>
     );
   }
+  console.log("🔥 Component Rendered! activeProfile is:", activeProfile);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#09090E] p-0 md:p-4 md:pt-16">
@@ -252,9 +410,11 @@ const MeasurementsPage = () => {
 
           <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
             {profiles.map((profile) => (
+              
               <button
                 key={profile._id}
                 onClick={() => {
+                  switchProfile(profile._id);
                   setActiveProfileId(profile._id);
                   setMobileTab("form"); // Auto navigate to form view on mobile upon selection
                 }}
@@ -524,23 +684,11 @@ const MeasurementsPage = () => {
                       </p>
                       <input
                         className="w-full px-3 py-2 text-xs border border-black/15 text-[#1A1814] bg-white outline-none"
-                        defaultValue={activeProfile?.displayName}
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
                       />
                     </div>
-                    <div>
-                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
-                        Preferred Fit
-                      </p>
-                      <select
-                        className="w-full px-3 py-2 text-xs border border-black/15 text-[#7A7260] bg-white outline-none"
-                        defaultValue={activeProfile?.preferredFit ?? ""}
-                      >
-                        <option value="">Select fit...</option>
-                        <option value="Slim">Slim</option>
-                        <option value="Regular">Regular</option>
-                        <option value="Relaxed">Relaxed</option>
-                      </select>
-                    </div>
+       
                     <div>
                       <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
                         Fabrics to Avoid
@@ -554,17 +702,70 @@ const MeasurementsPage = () => {
                         <option>Mohair</option>
                       </select>
                     </div>
-                    <div>
-                      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
-                        Reference Photos
-                      </p>
-                      <button
-                        className="w-24 h-20 border-2 border-dashed border-black/15 flex flex-col items-center justify-center gap-1 transition-colors hover:bg-[#EDE8DE]"
-                      >
-                        <Plus size={14} color="#9A9080" />
-                        <span className="text-[9px] tracking-wider text-[#9A9080]">ADD PHOTO</span>
-                      </button>
-                    </div>
+                   <div>
+      <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
+        Reference Photos
+      </p>
+
+      {/* Hidden native file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/png, image/jpeg, image/webp"
+        multiple
+        className="hidden"
+      />
+
+      {/* Photo Grid & Upload Trigger */}
+      <div className="flex flex-wrap gap-2 items-center">
+        {/* Thumbnail Preview Items */}
+        {photos.map((photo) => (
+          <div
+            key={photo.id}
+            className="relative w-24 h-20 border border-black/10 rounded-sm overflow-hidden group bg-[#EDE8DE]"
+          >
+            <img
+              src={photo.previewUrl}
+              alt="Reference preview"
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Delete button overlay */}
+            <button
+              type="button"
+              onClick={() => handleRemovePhoto(photo.id)}
+              className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-black/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              title="Remove photo"
+            >
+              <X size={10} />
+            </button>
+          </div>
+        ))}
+
+        {/* Add Photo Button (Triggers File Picker) */}
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => fileInputRef.current?.click()}
+          className="w-24 h-20 border-2 border-dashed border-black/15 flex flex-col items-center justify-center gap-1 transition-colors hover:bg-[#EDE8DE] disabled:opacity-50"
+        >
+          {loading ? (
+            <Loader2 size={14} className="animate-spin text-[#9A9080]" />
+          ) : (
+            <>
+              <Plus size={14} color="#9A9080" />
+              <span className="text-[9px] tracking-wider text-[#9A9080]">
+                ADD PHOTO
+              </span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Display Zustand Upload Errors */}
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
                     <div>
                       <p className="text-[9px] tracking-[0.25em] uppercase mb-1.5 font-bold text-[#9A9080]">
                         Special Instructions
@@ -576,6 +777,24 @@ const MeasurementsPage = () => {
                         defaultValue={activeProfile?.specialInstructions ?? ""}
                       />
                     </div>
+                      {/* Save Button */}
+          <div className="pt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={handleSaveProfile}
+              disabled={isSaving || loading}
+              className="px-5 py-2.5 bg-[#1A1814] hover:bg-[#33302B] text-[#EDE8DE] text-[10px] font-bold tracking-[0.25em] uppercase transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 size={12} className="animate-spin" />
+                  SAVING...
+                </>
+              ) : (
+                "SAVE PROFILE"
+              )}
+            </button>
+          </div>
                   </div>
                 </motion.div>
               )}
@@ -583,6 +802,8 @@ const MeasurementsPage = () => {
           </div>
         </div>
       </div>
+
+    
     </div>
   );
 };

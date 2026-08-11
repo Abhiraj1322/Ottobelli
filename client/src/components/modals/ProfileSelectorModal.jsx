@@ -4,7 +4,7 @@ import { X, Plus, Check, Ruler } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios"
 import useCartStore from "../../store/userCartStore";
-
+import userProfileStore from "../../store/userProfileStore"; // Adjust path if needed
 const ProfileSelectorModal = ({
   product,
   customizationSelectionId ,
@@ -20,17 +20,30 @@ const ProfileSelectorModal = ({
   const [isAdding, setIsAdding] = useState(false);
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
 const [showProfileModal, setShowProfileModal] = useState(false);
-
+const activeProfile = userProfileStore((state) => state.activeProfile);
+  const switchProfile =userProfileStore((state) => state.switchProfile);
 
   // Fetch user profiles
+// Fetch profiles and highlight the active profile
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
         const res = await api.get("/api/profiles");
-        setProfiles(res.data.profiles);
-        // Auto select first profile
-        if (res.data.profiles.length > 0) {
-          setSelectedProfileId(res.data.profiles[0]._id);
+        const fetchedProfiles = res.data.profiles || [];
+        setProfiles(fetchedProfiles);
+
+        if (fetchedProfiles.length > 0) {
+          // 1. Check activeProfile from Zustand store
+          // 2. Fall back to localStorage
+          const activeId = activeProfile?._id || localStorage.getItem("activeProfileId");
+
+          // Find if the active ID exists in fetched profiles
+          const matchedProfile = fetchedProfiles.find(
+            (p) => String(p._id) === String(activeId)
+          );
+
+          // Highlight the profile the user switched to (Brother), or default to 1st profile
+          setSelectedProfileId(matchedProfile ? matchedProfile._id : fetchedProfiles[0]._id);
         }
       } catch (err) {
         console.error("Failed to fetch profiles:", err);
@@ -38,8 +51,9 @@ const [showProfileModal, setShowProfileModal] = useState(false);
         setIsLoading(false);
       }
     };
+
     fetchProfiles();
-  }, []);
+  }, [activeProfile?._id]);
 
   const handleAddToCart = async () => {
     if (!selectedProfileId) return;
@@ -216,7 +230,9 @@ const [showProfileModal, setShowProfileModal] = useState(false);
                   return (
                     <button
                       key={profile._id}
-                      onClick={() => setSelectedProfileId(profile._id)}
+                      onClick={() =>{ setSelectedProfileId(profile._id)
+                        switchProfile(profile._id);
+                      }}
                       className="w-full flex items-center gap-4 px-5 py-4 text-left transition-all"
                       style={{
                         background: isSelected ? "#1A1814" : "rgba(26,24,20,0.05)",
