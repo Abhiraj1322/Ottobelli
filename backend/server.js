@@ -1,6 +1,8 @@
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+dotenv.config();  
 const connectDB = require('./config/db.js');
 const cookieParser = require('cookie-parser');
 const authRoutes = require("./routes/authRoutes.js");
@@ -12,8 +14,8 @@ const profileRoutes = require("./routes/profileRoutes");
 const favoritesRoutes = require("./routes/favoritesRoutes.js");
 const path =require('path')
 const uploadRoutes = require("../backend/routes/uploadRoutes.js")
-// Load environment variables
-dotenv.config();
+const adminRoutes=require("../backend/routes/adminRoutes.js")
+
 
 // Connect to MongoDB
 connectDB();
@@ -54,6 +56,7 @@ app.use("/api/customizations", customizationRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/upload", uploadRoutes);
+app.use("/api/admin/",adminRoutes)
 // Basic Test Route
 app.get('/', (req, res) => {
   res.send('Ottobelli API is running successfully.');

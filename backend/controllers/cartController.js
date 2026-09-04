@@ -18,10 +18,12 @@ const getCart = async (req, res) => {
     }
 
     // Calculate total price
-    const total = cart.items.reduce((sum, item) => {
-      return sum + item.priceAtAdd * item.quantity;
-    }, 0);
-
+    const total = cart.items.reduce((acc, item) => {
+      const basePrice = item.priceAtAdd || item.productId?.price || 0;
+      const fee = item.additionalFee || 0;
+      return acc + (basePrice + fee) * item.quantity;
+    }, 0)
+    
     res.status(200).json({ cart, total });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -33,7 +35,7 @@ const getCart = async (req, res) => {
 // Body: { productId, profileId, customizationSelectionId (optional), quantity }
 const addToCart = async (req, res) => {
   try {
-    const { productId, profileId, customizationSelectionId, quantity = 1 } = req.body;
+    const { productId, profileId, customizationSelectionId, quantity = 1,additionalFee } = req.body;
 
     if (!productId) {
       return res.status(400).json({ message: "productId and profileId are required" });
@@ -62,7 +64,8 @@ const addToCart = async (req, res) => {
     const existingItemIndex = cart.items.findIndex(
       (item) =>
         item.productId.toString() === productId &&
-        item.profileId.toString() === profileId
+        item.profileId.toString() === profileId &&
+        String(item.customizationSelectionId) === String(customizationSelectionId)
     );
 
     if (existingItemIndex >= 0) {
@@ -75,7 +78,8 @@ const addToCart = async (req, res) => {
         profileId,
         customizationSelectionId: customizationSelectionId || null,
         quantity,
-        priceAtAdd: product.price, // snapshot price at time of adding
+        priceAtAdd: product.price,
+        additionalFee: Number(additionalFee) || 0, // snapshot price at time of adding
       });
     }
 

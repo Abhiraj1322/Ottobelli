@@ -13,7 +13,10 @@ const cartItemSchema = new mongoose.Schema(
       ref: "CustomizationSelection",
       default: null,
     },
-
+additionalFee: {
+    type: Number,
+    default: 0,
+  },
     quantity: { type: Number, default: 1, min: 1 },
     priceAtAdd: { type: Number, required: true }, // snapshot price in case product price changes later
   },
