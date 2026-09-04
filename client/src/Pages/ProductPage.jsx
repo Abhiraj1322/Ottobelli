@@ -31,7 +31,7 @@ const ProductPage = () => {
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [customizationId, setCustomizationId] = useState(null);
-
+  const [additionalFee, setAdditionalFee] = useState(0); 
   const itemIndex = allProducts.findIndex((p) => p.slug === slug);
   const totalItems = allProducts.length;
   const favorited = product ? isFavorite(product._id) : false;
@@ -133,6 +133,15 @@ const ProductPage = () => {
       addFavorite(product._id);
     }
   };
+
+// Called when user clicks "Save Customizations" in CustomizationModal
+  const handleCustomizationSaved = (savedCustomizationId, feeAmount) => {
+    setCustomizationId(savedCustomizationId);
+    setAdditionalFee(feeAmount);
+    setShowCustomizationModal(false); // 👈 Updated to match your state setter
+  setShowProfileModal(true);
+  };
+
 
   if (isLoading) {
     return (
@@ -484,17 +493,14 @@ const ProductPage = () => {
             product={product}
             profileId={null}
             onClose={() => setShowCustomizationModal(false)}
-            onSaved={(id) => {
-              setCustomizationId(id);
-              setShowCustomizationModal(false);
-              setShowProfileModal(true);
-            }}
+            onSaved={handleCustomizationSaved}
           />
         )}
         {showProfileModal && (
           <ProfileSelectorModal
             product={product}
             customizationSelectionId={customizationId}
+            additionalFee={additionalFee} 
             onClose={() => setShowProfileModal(false)}
             onAdded={() => {
               setShowProfileModal(false);

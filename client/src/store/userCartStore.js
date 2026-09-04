@@ -24,7 +24,7 @@ const useCartStore = create((set, get) => ({
   },
 
   // Add item to cart
-  addToCart: async (productId, profileId, customizationSelectionId = null, quantity = 1) => {
+  addToCart: async (productId, profileId, customizationSelectionId = null, quantity = 1,additionalFee = 0) => {
     set({ isLoading: true, error: null });
     try {
       const res = await api.post("/api/cart", {
@@ -32,6 +32,7 @@ const useCartStore = create((set, get) => ({
         profileId,
         customizationSelectionId,
         quantity,
+        additionalFee,
       });
 
       // Refetch cart to get updated data with populated fields

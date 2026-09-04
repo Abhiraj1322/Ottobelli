@@ -8,6 +8,7 @@ import userProfileStore from "../../store/userProfileStore"; // Adjust path if n
 const ProfileSelectorModal = ({
   product,
   customizationSelectionId ,
+  additionalFee = 0,
   onClose,
   onAdded,
 }) => {
@@ -63,7 +64,8 @@ const activeProfile = userProfileStore((state) => state.activeProfile);
         product._id,
         selectedProfileId,
         customizationSelectionId,
-        1
+        1,
+        additionalFee,
       );
       onAdded();
     } catch (err) {

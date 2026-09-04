@@ -121,6 +121,7 @@ const {activeProfile, updateProfileDetails,updateMeasurements,switchProfile} = u
         setProfiles(res.data.profiles);
         if (res.data.profiles.length > 0) {
           setActiveProfileId(res.data.profiles[0]._id);
+          console.log(activeProfileId)
         }
       } catch (err) {
         console.error("Failed to fetch profiles:", err);
@@ -389,58 +390,70 @@ const handleAddProfile = async () => {
           </button>
         </div>
 
-        {/* ── Left — Profile list (Responsive visibility) ── */}
-        <div
-          className={`flex-col overflow-hidden flex-shrink-0 md:flex ${
-            mobileTab === "profiles" ? "flex h-full" : "hidden"
-          }`}
-          style={{
-            width: "100%",
-            maxWidth: "none",
-            background: "#FFFFFF",
-            borderRight: "1px solid rgba(26,24,20,0.08)",
+   {/* ── Left — Profile list (Responsive visibility) ── */}
+<div
+  className={`flex-col overflow-hidden flex-shrink-0 w-full md:w-[180px] md:flex ${
+    mobileTab === "profiles" ? "flex h-full" : "hidden"
+  }`}
+  style={{
+    maxWidth: "none",
+    background: "#FFFFFF",
+    borderRight: "1px solid rgba(26,24,20,0.08)",
+  }}
+>
+  <div className="px-4 py-4 border-b border-black/5 flex-shrink-0">
+    <p className="text-[9px] tracking-[0.35em] uppercase font-bold text-[#9A9080]">
+      Profiles
+    </p>
+  </div>
+
+  <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+    {profiles.map((profile) => {
+      // Safely extract string IDs to guarantee matching regardless of key type (_id vs id)
+      const currentProfileId = String(profile._id || profile.id);
+      const activeId = String(
+        activeProfile?._id || activeProfile?.id || activeProfileId || ""
+      );
+
+      const isActive = currentProfileId === activeId;
+
+      return (
+        <button
+          key={profile._id || profile.id}
+          onClick={() => {
+            const selectedId = profile._id || profile.id;
+            switchProfile(selectedId);
+            if (typeof setActiveProfileId === "function") {
+              setActiveProfileId(selectedId);
+            }
+            setMobileTab("form"); // Auto navigate to form view on mobile upon selection
           }}
-          className="w-full md:w-[180px] flex flex-col"
+          className="w-full text-left px-4 py-3.5 border-b border-black/[0.06] transition-colors"
+          style={{
+            background: isActive ? "#F5F0E8" : "transparent",
+          }}
         >
-          <div className="px-4 py-4 border-b border-black/5 flex-shrink-0">
-            <p className="text-[9px] tracking-[0.35em] uppercase font-bold text-[#9A9080]">
-              Profiles
-            </p>
-          </div>
+          <p className="text-xs font-semibold text-[#1A1814]">
+            {profile.displayName}
+          </p>
+          <p className="text-[9px] mt-0.5 text-[#9A9080]">
+            {Object.values(profile.measurements || {}).filter(
+              (v) => v !== null && v !== undefined
+            ).length} / 14 filled
+          </p>
+        </button>
+      );
+    })}
 
-          <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
-            {profiles.map((profile) => (
-              
-              <button
-                key={profile._id}
-                onClick={() => {
-                  switchProfile(profile._id);
-                  setActiveProfileId(profile._id);
-                  setMobileTab("form"); // Auto navigate to form view on mobile upon selection
-                }}
-                className="w-full text-left px-4 py-3.5 border-b border-black/[0.06] transition-colors"
-                style={{
-                  background: profile._id === activeProfileId ? "#F5F0E8" : "transparent",
-                }}
-              >
-                <p className="text-xs font-semibold text-[#1A1814]">
-                  {profile.displayName}
-                </p>
-                <p className="text-[9px] mt-0.5 text-[#9A9080]">
-                  {Object.values(profile.measurements || {}).filter((v) => v !== null && v !== undefined).length} / 14 filled
-                </p>
-              </button>
-            ))}
-
-            <button
-              onClick={handleAddProfile}
-              className="w-full px-4 py-3 flex items-center gap-1.5 text-[10px] tracking-wider hover:bg-[#F5F0E8] transition-colors text-[#C8A96E] font-semibold"
-            >
-              <Plus size={11} />
-              Add Profile
-            </button>
-          </div>
-        </div>
+    <button
+      onClick={handleAddProfile}
+      className="w-full px-4 py-3 flex items-center gap-1.5 text-[10px] tracking-wider hover:bg-[#F5F0E8] transition-colors text-[#C8A96E] font-semibold"
+    >
+      <Plus size={11} />
+      Add Profile
+    </button>
+  </div>
+</div>
 
         {/* ── Center — Body diagram (Responsive visibility) ── */}
         <div
@@ -451,7 +464,7 @@ const handleAddProfile = async () => {
             width: "100%",
             borderRight: "1px solid rgba(26,24,20,0.08)",
           }}
-          className="w-full md:w-[260px] flex flex-col"
+        
         >
           {/* Body tab toggle */}
           <div className="w-full flex border-b border-black/5">

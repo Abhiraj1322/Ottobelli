@@ -22,6 +22,7 @@ import ProfilesPage from './components/account/ProfilesPage'
 import MeasurementsPage from './components/account/MeasurementsPage'
 import AccountPage from './components/account/AccountPage'
 import Footer from './components/layout/Footer'
+import AdminBulkUpload from './components/account/AdminBulkupload'
 function App() {
   const [count, setCount] = useState(0)
 const{checkAuth}=useAuthStore()
@@ -62,9 +63,15 @@ const{checkAuth}=useAuthStore()
  <Route path="/favorites" element={
           <ProtectedRoute><FavoritesPage /></ProtectedRoute>
         } />
+ <Route path="/account/adminbulkupload" element={
+          <AdminBulkUpload/>
+        } />
+
  <Route path="/account/profiles" element={
           <ProtectedRoute><ProfilesPage /></ProtectedRoute>
         } />
+
+
          <Route path="/account/profiles/:id/measurements" element={
           <ProtectedRoute><MeasurementsPage /></ProtectedRoute>
         } />
