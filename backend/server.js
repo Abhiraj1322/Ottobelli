@@ -15,7 +15,7 @@ const favoritesRoutes = require("./routes/favoritesRoutes.js");
 const path =require('path')
 const uploadRoutes = require("../backend/routes/uploadRoutes.js")
 const adminRoutes=require("../backend/routes/adminRoutes.js")
-
+const paymentRoutes=require("../backend/routes/paymentRoutes.js")
 
 // Connect to MongoDB
 connectDB();
@@ -57,6 +57,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/upload", uploadRoutes);
 app.use("/api/admin/",adminRoutes)
+app.use("/api/payments", paymentRoutes);
 // Basic Test Route
 app.get('/', (req, res) => {
   res.send('Ottobelli API is running successfully.');
