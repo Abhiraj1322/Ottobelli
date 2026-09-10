@@ -23,6 +23,7 @@ import MeasurementsPage from './components/account/MeasurementsPage'
 import AccountPage from './components/account/AccountPage'
 import Footer from './components/layout/Footer'
 import AdminBulkUpload from './components/account/AdminBulkupload'
+import CheckoutPage from './Pages/CheckoutPage'
 function App() {
   const [count, setCount] = useState(0)
 const{checkAuth}=useAuthStore()
@@ -60,6 +61,10 @@ const{checkAuth}=useAuthStore()
  <Route path="/cart" element={
           <ProtectedRoute><CartPage /></ProtectedRoute>
         } />
+
+   <Route path="/checkout" element={
+          <ProtectedRoute><CheckoutPage /></ProtectedRoute>
+        } />      
  <Route path="/favorites" element={
           <ProtectedRoute><FavoritesPage /></ProtectedRoute>
         } />

@@ -9,7 +9,12 @@ const CartPage = () => {
   
   // 1. Simplified Store Selectors (No more isLoading or fetchCart required)
   const { items, total, updateQuantity, removeFromCart, clearCart } = useCartStore();
+  
 
+  const subtotal = total; 
+  const shippingCost = subtotal > 0 ? 15.00 : 0.00; // Flat $15 shipping (or set to 0 if free)
+  const tax = subtotal * 0.13; // 13% Ontario HST
+  const totalPrice = subtotal + shippingCost + tax;
   const [removingId, setRemovingId] = useState(null);
 
   // 2. Instant Local Action Handling (No more async/await blocking network requests)
@@ -383,15 +388,34 @@ const CartPage = () => {
                 </div>
 
                 {/* Checkout button */}
-                <button
-                  onClick={() => navigate("/checkout")}
-                  className="w-full py-4 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 hover:opacity-90 flex items-center justify-center gap-2"
-                  style={{ background: "#C8A96E", color: "#1A1814" }}
-                >
-                  Proceed to Checkout
-                  <ArrowRight size={13} />
-                </button>
+<button
+  onClick={() => {
+    // 1. Console log the data being sent
+    console.log("Navigating to checkout with state:", {
+      cartItems: items,
+      subtotal,
+      shippingCost,
+      tax,
+      totalPrice,
+    });
 
+    // 2. Perform the navigation
+    navigate("/checkout", {
+      state: {
+        cartItems: items,
+        subtotal,
+        shippingCost,
+        tax,
+        totalPrice,
+      },
+    });
+  }}
+  className="w-full py-4 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 hover:opacity-90 flex items-center justify-center gap-2"
+  style={{ background: "#C8A96E", color: "#1A1814" }}
+>
+  Proceed to Checkout
+  <ArrowRight size={13} />
+</button>
                 {/* Guarantees */}
                 <div className="mt-5 space-y-2">
                   {[
