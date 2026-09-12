@@ -22,7 +22,7 @@ import ProfilesPage from './components/account/ProfilesPage'
 import MeasurementsPage from './components/account/MeasurementsPage'
 import AccountPage from './components/account/AccountPage'
 import Footer from './components/layout/Footer'
-import AdminBulkUpload from './components/account/AdminBulkupload'
+import AdminBulkUpload from './components/account/AdminBulkUpload'
 import CheckoutPage from './Pages/CheckoutPage'
 function App() {
   const [count, setCount] = useState(0)
