@@ -80,11 +80,48 @@ const getOrderById = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error fetching orders" });
   }
 };
+ const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({})
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, orders });
+  } catch (error) {
+    console.error("Error fetching all orders:", error);
+    res.status(500).json({ success: false, message: "Server error fetching orders" });
+  }
+};
+
+ const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderStatus, isDelivered } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    if (orderStatus) order.orderStatus = orderStatus;
+    if (typeof isDelivered === "boolean") {
+      order.isDelivered = isDelivered;
+      order.deliveredAt = isDelivered ? Date.now() : null;
+    }
+
+    const updatedOrder = await order.save();
+    res.status(200).json({ success: true, order: updatedOrder });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to update order status" });
+  }
+};
+
 
 
 // CommonJS module export
 module.exports = {
   createOrder,
   getOrderById,
-  getUserOrders
+  getUserOrders,
+  getAllOrders,
+  updateOrderStatus,
 };
