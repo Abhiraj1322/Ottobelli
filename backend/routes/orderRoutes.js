@@ -7,7 +7,7 @@ const { protect } = require("../middleware/authMiddleware"); // Your auth middle
 router.post("/", protect, createOrder);
 router.get("/my-orders", protect, getUserOrders); // MUST be above /:id
 
-router.get("/all",protect,getAllOrders);
+router.get("/all",getAllOrders);
 router.put("/:id/status",protect,updateOrderStatus)
 router.get("/:id", protect, getOrderById);
 module.exports = router;
