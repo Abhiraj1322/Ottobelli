@@ -24,6 +24,10 @@ import AccountPage from './components/account/AccountPage'
 import Footer from './components/layout/Footer'
 import AdminBulkUpload from './components/account/AdminBulkUpload'
 import CheckoutPage from './Pages/CheckoutPage'
+import OrderConfirmationPage from './Pages/OrderConfirmationPage'
+import UserOrdersPage from './Pages/UserOrderPage'
+import AdminOrderPage from './Pages/AdminOrderPage'
+import AdminRoute from './components/protectedroute/AdminRoute'
 function App() {
   const [count, setCount] = useState(0)
 const{checkAuth}=useAuthStore()
@@ -65,12 +69,21 @@ const{checkAuth}=useAuthStore()
    <Route path="/checkout" element={
           <ProtectedRoute><CheckoutPage /></ProtectedRoute>
         } />      
+
+
+        <Route path="/order-confirmation/:id" element={
+          
+          <ProtectedRoute><OrderConfirmationPage /></ProtectedRoute>} />
+
+<Route path="/account/orders" element={
+  <ProtectedRoute><UserOrdersPage /></ProtectedRoute>} />
  <Route path="/favorites" element={
           <ProtectedRoute><FavoritesPage /></ProtectedRoute>
         } />
- <Route path="/account/adminbulkupload" element={
-          <AdminBulkUpload/>
-        } />
+        <Route element={<AdminRoute/>}>
+          <Route path="/admin/orders" element={<AdminOrderPage />} />
+        <Route path="/admin/bulk-upload" element={<AdminBulkUpload />} />
+        </Route>
 
  <Route path="/account/profiles" element={
           <ProtectedRoute><ProfilesPage /></ProtectedRoute>

@@ -13,24 +13,40 @@ export default function LoginPage({ redirectTo }) {
   const isLoading = useAuthStore((state) => state.isLoading);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const clearError = useAuthStore((state) => state.clearError);
-console.log(isLoading)
+
   // Clear any existing auth errors when the user switches pages/views
-  useEffect(() => {
-    clearError();
-  }, [clearError]);
+// 1. Redirect automatically if already logged in (e.g. on page refresh)
+useEffect(() => {
+  if (isLoggedIn) {
+    // Check role saved in store user state or localStorage
+    const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const isAdmin = savedUser?.role === "admin";
 
-  // Redirect automatically when authentication changes to true
-  useEffect(() => {
-    if (isLoggedIn) {
-      navigate(redirectTo || "/"); // Fallback to your main layout route
+    if (isAdmin) {
+      navigate("/admin/orders", { replace: true });
+    } else {
+      navigate(redirectTo || "/", { replace: true });
     }
-  }, [isLoggedIn, navigate, redirectTo]);
+  }
+}, [isLoggedIn, navigate, redirectTo]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await login(formData.email, formData.password);
-  };
+// 2. Handle submit and route dynamically upon successful login
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const user = await login(formData.email, formData.password);
 
+    // If login store function returns user, route immediately
+    if (user?.role === "admin") {
+      navigate("/admin/orders", { replace: true });
+    } else {
+      navigate(redirectTo || "/", { replace: true });
+    }
+  } catch (err) {
+    // Error state is already set inside your store login function
+    console.error("Login failed:", err);
+  }
+};
   return (
     <div className="min-h-screen bg-[#09090E] flex items-center justify-center px-4 font-sans selection:bg-stone-800">
       {/* Absolute Header Navigation */}

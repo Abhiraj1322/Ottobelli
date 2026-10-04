@@ -28,22 +28,25 @@ const useAuthStore = create((set) => ({
     }
   },
 
-  // Login
-  login: async (email, password) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await api.post("/api/auth/login", { email, password });
-      
-      // ⭐ 1. SAVE THE TOKEN TO LOCAL STORAGE
-      // This allows your Axios interceptor to find it and send it in headers
-      localStorage.setItem("token", res.data.token); 
+// Login
+login: async (email, password) => {
+  set({ isLoading: true, error: null });
+  try {
+    const res = await api.post("/api/auth/login", { email, password });
+    
+    // 1. Save Token
+    localStorage.setItem("token", res.data.token); 
 
-      set({ user: res.data.user, isLoggedIn: true, isLoading: false });
-    } catch (err) {
-      set({ error: err.response?.data?.message || "Login failed", isLoading: false });
-    }
-  },
+    // 2. Save User Object (contains role: "admin")
+    localStorage.setItem("user", JSON.stringify(res.data.user));
 
+    set({ user: res.data.user, isLoggedIn: true, isLoading: false });
+    return res.data.user; // Returning user allows handling post-login redirect based on role
+  } catch (err) {
+    set({ error: err.response?.data?.message || "Login failed", isLoading: false });
+    throw err;
+  }
+},
   // Logout
   logout: () => {
     // ⭐ 2. REMOVE THE TOKEN FROM LOCAL STORAGE

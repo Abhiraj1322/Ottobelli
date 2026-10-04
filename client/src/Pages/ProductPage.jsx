@@ -6,7 +6,6 @@ import api from "../api/axios";
 import useAuthStore from "../store/userAuthStore";
 import useCartStore from "../store/userCartStore";
 import useFavoritesStore from "../store/favoritesStore";
-import { useTailorStore } from "../store/useTailorStore";
 import CustomizationModal from "../components/modals/CustomizationModal";
 import ProfileSelectorModal from "../components/modals/ProfileSelectorModal";
 
@@ -16,8 +15,9 @@ const ProductPage = () => {
   const [searchParams] = useSearchParams();
 
   // Get section + categorySlug from URL query params
-      const section = searchParams.get("section") 
-  const categorySlug = searchParams.get("category")
+  const section = searchParams.get("section");
+  const categorySlug = searchParams.get("category");
+
   // Zustand
   const { isLoggedIn } = useAuthStore();
   const { addToCart } = useCartStore();
@@ -31,7 +31,8 @@ const ProductPage = () => {
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [customizationId, setCustomizationId] = useState(null);
-  const [additionalFee, setAdditionalFee] = useState(0); 
+  const [additionalFee, setAdditionalFee] = useState(0);
+
   const itemIndex = allProducts.findIndex((p) => p.slug === slug);
   const totalItems = allProducts.length;
   const favorited = product ? isFavorite(product._id) : false;
@@ -44,10 +45,10 @@ const ProductPage = () => {
         const res = await api.get(`/api/products/${slug}`);
         setProduct(res.data.product);
         setImgIndex(0);
-        setCustomizationId(null); // Reset configuration state cleanly when transitioning between products
+        setCustomizationId(null);
       } catch (err) {
         console.error("Failed to fetch product:", err);
-      } finally {
+      }  {
         setIsLoading(false);
       }
     };
@@ -85,38 +86,36 @@ const ProductPage = () => {
   };
 
   // Handle add to cart
-  const handleAddToCart = async() => {
-    if (!isLoggedIn) { 
-      navigate("/login"); 
-      return; 
+  const handleAddToCart = async () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
     }
 
-   const isEverydayItem = 
-    section === "everyday" || 
-    categorySlug === "t-shirts" || 
-    product?.category === "everyday";
+    const isEverydayItem =
+      section === "everyday" ||
+      categorySlug === "t-shirts" ||
+      product?.category === "everyday";
 
-  if (isEverydayItem) {
-    // Everyday items go straight to profile selection or cart
-  await addToCart(product._id, null);
-  navigate("/cart")
-    return;
-  }
-// 2. Only intercept with Customization Modal for Made-to-Measure Classics
-  if (section === "classics" && product?.isCustomizable && !customizationId) {
-    setShowCustomizationModal(true);
-    return;
-  }
+    if (isEverydayItem) {
+      await addToCart(product._id, null);
+      navigate("/cart");
+      return;
+    }
 
-  setShowProfileModal(true);
+    if (section === "classics" && product?.isCustomizable && !customizationId) {
+      setShowCustomizationModal(true);
+      return;
+    }
 
+    setShowProfileModal(true);
   };
 
   // Handle customize
   const handleCustomize = () => {
-    if (!isLoggedIn) { 
-      navigate("/login"); 
-      return; 
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
     }
     setShowCustomizationModal(true);
   };
@@ -134,14 +133,13 @@ const ProductPage = () => {
     }
   };
 
-// Called when user clicks "Save Customizations" in CustomizationModal
+  // Called when user clicks "Save Customizations" in CustomizationModal
   const handleCustomizationSaved = (savedCustomizationId, feeAmount) => {
     setCustomizationId(savedCustomizationId);
     setAdditionalFee(feeAmount);
-    setShowCustomizationModal(false); // 👈 Updated to match your state setter
-  setShowProfileModal(true);
+    setShowCustomizationModal(false);
+    setShowProfileModal(true);
   };
-
 
   if (isLoading) {
     return (
@@ -161,21 +159,20 @@ const ProductPage = () => {
 
   return (
     <div
-      className="fixed inset-0 pt-[46px] overflow-hidden"
+      className="fixed inset-0 pt-[46px] overflow-y-auto md:overflow-hidden"
       style={{ background: "#09090E", fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* ── Slim product nav bar ── */}
       <div
-        className="absolute left-0 right-0 z-20 flex items-center justify-between px-8"
+        className="sticky md:absolute top-0 md:top-[46px] left-0 right-0 z-20 flex items-center justify-between px-4 sm:px-8"
         style={{
-          top: "46px",
           height: "40px",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
           background: "rgba(9,9,14,0.95)",
         }}
       >
         {/* Back button */}
-        <div className="flex items-center gap-1.5 text-[15px] tracking-[0.2em] text-white/40">
+        <div className="flex items-center gap-1.5 text-xs sm:text-[15px] tracking-[0.2em] text-white/40">
           <button
             onClick={() => navigate(`/${section}/${categorySlug}`)}
             className="hover:text-white/70 transition-colors"
@@ -185,7 +182,7 @@ const ProductPage = () => {
         </div>
 
         {/* Item slider dots + counter */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => goToItem("prev")}
             disabled={itemIndex <= 0}
@@ -194,7 +191,7 @@ const ProductPage = () => {
             <ChevronLeft size={13} />
           </button>
 
-          <div className="flex items-center gap-1.5">
+          <div className="hidden sm:flex items-center gap-1.5">
             {allProducts.slice(0, 8).map((_, i) => (
               <button
                 key={i}
@@ -220,20 +217,20 @@ const ProductPage = () => {
           </button>
 
           <span
-            className="text-[9px] tracking-wider text-white/25 ml-2"
+            className="text-[9px] tracking-wider text-white/25 sm:ml-2"
             style={{ fontFamily: "'DM Mono', monospace" }}
           >
             {itemIndex + 1} / {totalItems}
           </span>
         </div>
 
-        <div className="text-[9px] tracking-[0.2em] text-white/30 uppercase">
+        <div className="hidden sm:block text-[9px] tracking-[0.2em] text-white/30 uppercase">
           {section === "classics" ? "Made to Measure" : "Off the Rack"}
         </div>
       </div>
 
-      {/* ── Full screen image ── */}
-      <div className="absolute inset-0 top-[86px]">
+      {/* ── Full screen hero image ── */}
+      <div className="relative h-[55vh] md:h-auto md:absolute md:inset-0 md:top-[86px] w-full">
         <AnimatePresence mode="wait">
           <motion.img
             key={imgIndex}
@@ -249,24 +246,84 @@ const ProductPage = () => {
 
         {/* Gradient overlay */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{
             background:
               "linear-gradient(to right, rgba(9,9,14,0.2) 0%, rgba(9,9,14,0.0) 50%, rgba(9,9,14,0.55) 65%, rgba(9,9,14,0.8) 100%)",
           }}
         />
+
+        {/* Bottom image dots (Desktop) */}
+        {product.images.length > 1 && (
+          <div className="hidden md:flex absolute bottom-6 left-1/2 -translate-x-1/2 gap-2 z-10">
+            {product.images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setImgIndex(i)}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: i === imgIndex ? "24px" : "8px",
+                  height: "8px",
+                  background: i === imgIndex ? "#C8A96E" : "rgba(255,255,255,0.3)",
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Favorite button (Desktop) */}
+        <button
+          onClick={handleFavorite}
+          className="hidden md:block absolute left-8 transition-colors duration-200 z-10"
+          style={{ bottom: "24px" }}
+        >
+          <Heart
+            size={16}
+            strokeWidth={1.5}
+            color={favorited ? "#C8A96E" : "rgba(255,255,255,0.4)"}
+            fill={favorited ? "#C8A96E" : "none"}
+          />
+        </button>
+
+        {/* Image Dots + Favorite Overlay (Mobile) */}
+        <div className="md:hidden absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
+          <button
+            onClick={handleFavorite}
+            className="p-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10"
+          >
+            <Heart
+              size={16}
+              strokeWidth={1.5}
+              color={favorited ? "#C8A96E" : "rgba(255,255,255,0.6)"}
+              fill={favorited ? "#C8A96E" : "none"}
+            />
+          </button>
+          {product.images.length > 1 && (
+            <div className="flex gap-1.5">
+              {product.images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setImgIndex(i)}
+                  className="rounded-full transition-all duration-300"
+                  style={{
+                    width: i === imgIndex ? "18px" : "6px",
+                    height: "6px",
+                    background: i === imgIndex ? "#C8A96E" : "rgba(255,255,255,0.3)",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Floating task pane ── */}
       <motion.div
-        className="absolute right-8 overflow-y-auto"
+        className="relative md:absolute md:right-8 overflow-y-auto w-full md:w-[340px] pb-8 md:pb-0"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
         style={{
-          top: "110px",
-          bottom: "80px",
-          width: "340px",
           borderRadius: "4px",
           background: "rgba(9,9,14,0.72)",
           backdropFilter: "blur(24px)",
@@ -274,9 +331,22 @@ const ProductPage = () => {
           border: "1px solid rgba(255,255,255,0.09)",
           scrollbarWidth: "none",
         }}
+        // Inline layout overrides specifically for desktop fixed viewport anchoring
+        {...(window.innerWidth >= 768 && {
+          style: {
+            top: "110px",
+            bottom: "80px",
+            width: "340px",
+            borderRadius: "4px",
+            background: "rgba(9,9,14,0.72)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+            border: "1px solid rgba(255,255,255,0.09)",
+            scrollbarWidth: "none",
+          },
+        })}
       >
-        <div className="p-7">
-
+        <div className="p-5 sm:p-7">
           {/* Badge */}
           {product.badge && (
             <span
@@ -289,7 +359,7 @@ const ProductPage = () => {
 
           {/* Product name */}
           <h2
-            className="text-xl font-bold leading-snug mb-1 text-white"
+            className="text-lg sm:text-xl font-bold leading-snug mb-1 text-white"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {product.name}
@@ -324,17 +394,17 @@ const ProductPage = () => {
                 <button
                   onClick={handleCustomize}
                   className="px-4 py-3 text-xs font-bold tracking-[0.15em] uppercase transition-all duration-200 flex items-center justify-center gap-1.5"
-                  style={{ 
-                    background: customizationId ? "#16A34A" : "#C8A96E", 
-                    color: customizationId ? "#FFFFFF" : "#1A1814", 
-                    borderLeft: "none" 
+                  style={{
+                    background: customizationId ? "#16A34A" : "#C8A96E",
+                    color: customizationId ? "#FFFFFF" : "#1A1814",
+                    borderLeft: "none",
                   }}
                 >
                   {customizationId ? (
                     <>
                       <Check size={12} strokeWidth={3} />
                       Configured
-                    </                    >
+                    </>
                   ) : (
                     <>
                       <Sliders size={12} />
@@ -450,41 +520,8 @@ const ProductPage = () => {
               </div>
             </div>
           )}
-
         </div>
       </motion.div>
-
-      {/* ── Bottom image dots ── */}
-      {product.images.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {product.images.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setImgIndex(i)}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width: i === imgIndex ? "24px" : "8px",
-                height: "8px",
-                background: i === imgIndex ? "#C8A96E" : "rgba(255,255,255,0.3)",
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* ── Favorite button ── */}
-      <button
-        onClick={handleFavorite}
-        className="absolute left-8 transition-colors duration-200 z-10"
-        style={{ bottom: "24px" }}
-      >
-        <Heart
-          size={16}
-          strokeWidth={1.5}
-          color={favorited ? "#C8A96E" : "rgba(255,255,255,0.4)"}
-          fill={favorited ? "#C8A96E" : "none"}
-        />
-      </button>
 
       {/* Modals Mounting Segment */}
       <AnimatePresence>
@@ -500,7 +537,7 @@ const ProductPage = () => {
           <ProfileSelectorModal
             product={product}
             customizationSelectionId={customizationId}
-            additionalFee={additionalFee} 
+            additionalFee={additionalFee}
             onClose={() => setShowProfileModal(false)}
             onAdded={() => {
               setShowProfileModal(false);

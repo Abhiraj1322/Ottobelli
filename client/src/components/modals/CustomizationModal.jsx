@@ -52,15 +52,15 @@ const CustomizationModal = ({ product, onClose, onSaved }) => {
     'Tailor Changes': 'Yes - Change if required',
     'Comments': ''
   });
-  // Calculate total extra fees based on selections
-const calculateAdditionalFee = () => {
-  let fee = 0;
-  if (selections['Add Vest']) fee += 90;
-  if (selections['Square and Tie']) fee += 39;
-  if (selections['Additional Pants']) fee += 100;
-  return fee;
-};
 
+  // Calculate total extra fees based on selections
+  const calculateAdditionalFee = () => {
+    let fee = 0;
+    if (selections['Add Vest']) fee += 90;
+    if (selections['Square and Tie']) fee += 39;
+    if (selections['Additional Pants']) fee += 100;
+    return fee;
+  };
 
   const handleSelect = (category, value) => {
     setSelections(prev => ({ ...prev, [category]: value }));
@@ -68,7 +68,6 @@ const calculateAdditionalFee = () => {
 
   const handleSave = async () => {
     try {
-
       const additionalFee = calculateAdditionalFee();
       const res = await api.post('/api/customizations', {
         productId: product?._id,
@@ -79,20 +78,25 @@ const calculateAdditionalFee = () => {
       const customizationId = res.data.customization._id;
       console.log("Extracted Customization ID:", customizationId);
 
-      onSaved(customizationId,additionalFee);
+      onSaved(customizationId, additionalFee);
     } catch (err) {
       console.error('Failed to save customization:', err);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className="w-full max-w-2xl bg-[#09090E] text-white border border-white/10 max-h-[90vh] overflow-y-auto p-6 rounded-sm">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4">
+      <div className="w-full sm:max-w-2xl bg-[#09090E] text-white border border-white/10 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-t-lg sm:rounded-sm shadow-2xl">
         
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-white/10">
-          <h3 className="text-sm font-bold tracking-widest uppercase">Customization Preferences</h3>
-          <button onClick={onClose} className="text-white/40 hover:text-white">✕</button>
+        <div className="sticky top-0 z-10 bg-[#09090E] flex justify-between items-center pb-4 mb-2 border-b border-white/10">
+          <h3 className="text-xs sm:text-sm font-bold tracking-widest uppercase">Customization Preferences</h3>
+          <button 
+            onClick={onClose} 
+            className="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+          >
+            ✕
+          </button>
         </div>
 
         {/* SECTION 1: SHOULDER TYPE */}
@@ -101,30 +105,30 @@ const calculateAdditionalFee = () => {
             onClick={() => setOpenSection(openSection === 'shoulder' ? null : 'shoulder')}
             className="w-full flex justify-between items-center text-left"
           >
-            <span className="text-xs uppercase tracking-wider">
+            <span className="text-xs uppercase tracking-wider pr-2">
               Shoulder Type: <strong className="text-[#C8A96E]">{selections['Shoulder Type']}</strong>
             </span>
-            {openSection === 'shoulder' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {openSection === 'shoulder' ? <ChevronUp size={16} className="flex-shrink-0" /> : <ChevronDown size={16} className="flex-shrink-0" />}
           </button>
 
           {openSection === 'shoulder' && (
             <div className="mt-4">
               <p className="text-[11px] text-white/60 mb-4">{SHOULDER_OPTIONS[0].desc}</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {SHOULDER_OPTIONS.map((opt) => {
                   const isSelected = selections['Shoulder Type'] === opt.label;
                   return (
                     <div
                       key={opt.id}
                       onClick={() => handleSelect('Shoulder Type', opt.label)}
-                      className={`cursor-pointer border p-2 transition-all ${
+                      className={`cursor-pointer border p-3 sm:p-2 transition-all flex sm:flex-col items-center sm:items-stretch gap-3 sm:gap-0 ${
                         isSelected ? 'border-[#C8A96E] bg-white/5' : 'border-white/10 hover:border-white/30'
                       }`}
                     >
-                      <img src={opt.img} alt={opt.label} className="w-full h-24 object-contain mb-2" />
-                      <div className="flex items-center justify-between text-[10px] uppercase">
+                      <img src={opt.img} alt={opt.label} className="w-12 h-12 sm:w-full sm:h-24 object-contain" />
+                      <div className="flex-1 flex items-center justify-between text-[10px] sm:text-[10px] uppercase sm:mt-2">
                         <span>{opt.label}</span>
-                        {isSelected && <Check size={12} className="text-[#C8A96E]" />}
+                        {isSelected && <Check size={14} className="text-[#C8A96E]" />}
                       </div>
                     </div>
                   );
@@ -141,7 +145,7 @@ const calculateAdditionalFee = () => {
             className="w-full flex justify-between items-center text-left"
           >
             <span className="text-xs uppercase tracking-wider">Jacket Customizations</span>
-            {openSection === 'jacket' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {openSection === 'jacket' ? <ChevronUp size={16} className="flex-shrink-0" /> : <ChevronDown size={16} className="flex-shrink-0" />}
           </button>
 
           {openSection === 'jacket' && (
@@ -152,7 +156,7 @@ const calculateAdditionalFee = () => {
                   <select
                     value={selections[key]}
                     onChange={(e) => handleSelect(key, e.target.value)}
-                    className="w-full text-xs p-2.5 bg-white/5 border border-white/10 text-white rounded focus:border-[#C8A96E] outline-none"
+                    className="w-full text-xs p-3 sm:p-2.5 bg-white/5 border border-white/10 text-white rounded focus:border-[#C8A96E] outline-none"
                   >
                     {options.map((opt) => (
                       <option key={opt} value={opt} className="bg-[#09090E] text-white">{opt}</option>
@@ -168,7 +172,7 @@ const calculateAdditionalFee = () => {
                   placeholder="Enter Monogram Initials"
                   value={selections['Monogram Text']}
                   onChange={(e) => handleSelect('Monogram Text', e.target.value)}
-                  className="w-full text-xs p-2.5 bg-white/5 border border-white/10 text-white rounded focus:border-[#C8A96E] outline-none"
+                  className="w-full text-xs p-3 sm:p-2.5 bg-white/5 border border-white/10 text-white rounded focus:border-[#C8A96E] outline-none"
                 />
               </div>
             </div>
@@ -176,7 +180,7 @@ const calculateAdditionalFee = () => {
         </div>
 
         {/* SECTION 3: ADD A VEST */}
-        <div className="py-4 border-b border-white/10 flex justify-between items-center">
+        <div className="py-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h4 className="text-xs uppercase tracking-wider font-bold">ADD A VEST (+$90)</h4>
             <p className="text-[10px] text-white/50 mt-1 max-w-sm">
@@ -185,7 +189,7 @@ const calculateAdditionalFee = () => {
           </div>
           <button
             onClick={() => handleSelect('Add Vest', !selections['Add Vest'])}
-            className={`px-3 py-2 text-[10px] uppercase tracking-wider font-bold transition flex items-center gap-1 ${
+            className={`w-full sm:w-auto px-4 py-2.5 text-[10px] uppercase tracking-wider font-bold transition flex items-center justify-center gap-1.5 ${
               selections['Add Vest']
                 ? 'bg-white/10 text-[#C8A96E] border border-[#C8A96E]'
                 : 'bg-[#C8A96E] text-black hover:opacity-90'
@@ -203,7 +207,7 @@ const calculateAdditionalFee = () => {
             className="w-full flex justify-between items-center text-left"
           >
             <span className="text-xs uppercase tracking-wider">Trouser Customizations</span>
-            {openSection === 'trousers' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {openSection === 'trousers' ? <ChevronUp size={16} className="flex-shrink-0" /> : <ChevronDown size={16} className="flex-shrink-0" />}
           </button>
 
           {openSection === 'trousers' && (
@@ -214,7 +218,7 @@ const calculateAdditionalFee = () => {
                   <select
                     value={selections[key]}
                     onChange={(e) => handleSelect(key, e.target.value)}
-                    className="w-full text-xs p-2.5 bg-white/5 border border-white/10 text-white rounded focus:border-[#C8A96E] outline-none"
+                    className="w-full text-xs p-3 sm:p-2.5 bg-white/5 border border-white/10 text-white rounded focus:border-[#C8A96E] outline-none"
                   >
                     {options.map((opt) => (
                       <option key={opt} value={opt} className="bg-[#09090E] text-white">{opt}</option>
@@ -230,26 +234,26 @@ const calculateAdditionalFee = () => {
         <div className="py-4 border-b border-white/10 space-y-3">
           <h4 className="text-xs uppercase tracking-wider font-bold">Add-Ons</h4>
           
-          <label className="flex items-center justify-between cursor-pointer text-xs">
+          <label className="flex items-center justify-between cursor-pointer text-xs py-1">
             <span>Square and Tie (+$39)</span>
             <input
               type="checkbox"
               checked={selections['Square and Tie']}
               onChange={(e) => handleSelect('Square and Tie', e.target.checked)}
-              className="accent-[#C8A96E] w-4 h-4"
+              className="accent-[#C8A96E] w-4 h-4 ml-2"
             />
           </label>
 
-          <label className="flex items-center justify-between cursor-pointer text-xs">
-            <div>
+          <label className="flex items-center justify-between cursor-pointer text-xs py-1">
+            <div className="pr-4">
               <span>Additional Pants (+$100)</span>
-              <p className="text-[10px] text-white/40">Trousers wear out faster. Save by adding an extra pair now.</p>
+              <p className="text-[10px] text-white/40 mt-0.5">Trousers wear out faster. Save by adding an extra pair now.</p>
             </div>
             <input
               type="checkbox"
               checked={selections['Additional Pants']}
               onChange={(e) => handleSelect('Additional Pants', e.target.checked)}
-              className="accent-[#C8A96E] w-4 h-4"
+              className="accent-[#C8A96E] w-4 h-4 ml-2 flex-shrink-0"
             />
           </label>
         </div>
@@ -261,9 +265,9 @@ const calculateAdditionalFee = () => {
             Our tailors may make small changes if required to fit better.
           </p>
 
-          <div className="space-y-1.5 pt-1">
+          <div className="space-y-2 pt-1">
             {['Yes - Change if required', 'No - Contact me'].map((opt) => (
-              <label key={opt} className="flex items-center gap-2 cursor-pointer text-xs">
+              <label key={opt} className="flex items-center gap-2 cursor-pointer text-xs py-0.5">
                 <input
                   type="radio"
                   name="tailorChanges"
@@ -297,7 +301,7 @@ const calculateAdditionalFee = () => {
         {/* Action Button */}
         <button 
           onClick={handleSave}
-          className="w-full mt-6 py-3 bg-[#C8A96E] text-black text-xs font-bold uppercase tracking-widest hover:opacity-90 transition"
+          className="w-full mt-6 py-3.5 sm:py-3 bg-[#C8A96E] text-black text-xs font-bold uppercase tracking-widest hover:opacity-90 transition rounded-sm sticky bottom-0 z-10 shadow-lg"
         >
           Save Customizations {calculateAdditionalFee() > 0 && `(+$${calculateAdditionalFee()})`}
         </button>

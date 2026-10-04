@@ -35,7 +35,7 @@ const ClassicsPage = () => {
       >
         {/* Background image - Premium Tailoring Aesthetics */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0"  
           style={{
             backgroundImage:
               "url(https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1920&h=1080&fit=crop&auto=format)",

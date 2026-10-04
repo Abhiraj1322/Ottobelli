@@ -6,25 +6,23 @@ import useCartStore from "../store/userCartStore";
 
 const CartPage = () => {
   const navigate = useNavigate();
-  
-  // 1. Simplified Store Selectors (No more isLoading or fetchCart required)
-  const { items, total, updateQuantity, removeFromCart, clearCart } = useCartStore();
-  
 
-  const subtotal = total; 
-  const shippingCost = subtotal > 0 ? 15.00 : 0.00; // Flat $15 shipping (or set to 0 if free)
+  // 1. Simplified Store Selectors
+  const { items, total, updateQuantity, removeFromCart, clearCart } = useCartStore();
+
+  const subtotal = total;
+  const shippingCost = subtotal > 0 ? 15.0 : 0.0; // Flat $15 shipping (or set to 0 if free)
   const tax = subtotal * 0.13; // 13% Ontario HST
   const totalPrice = subtotal + shippingCost + tax;
   const [removingId, setRemovingId] = useState(null);
 
-  // 2. Instant Local Action Handling (No more async/await blocking network requests)
+  // 2. Instant Local Action Handling
   const handleRemove = (itemId) => {
     setRemovingId(itemId);
-    // Instant removal animation trigger
     setTimeout(() => {
       removeFromCart(itemId);
       setRemovingId(null);
-    }, 200); 
+    }, 200);
   };
 
   const handleQuantity = (itemId, currentQty, dir) => {
@@ -33,7 +31,7 @@ const CartPage = () => {
     updateQuantity(itemId, newQty);
   };
 
-  // 3. Group items by profile (Exactly matching your original layout logic)
+  // 3. Group items by profile
   const groupedByProfile = items.reduce((acc, item) => {
     const profileName = item.profileId?.displayName || "Unknown Profile";
     if (!acc[profileName]) acc[profileName] = [];
@@ -46,13 +44,13 @@ const CartPage = () => {
       className="min-h-screen pt-[46px]"
       style={{ background: "#09090E", fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-5xl mx-auto px-8 py-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
 
         {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
+          className="mb-8 sm:mb-12"
         >
           <p
             className="text-[9px] tracking-[0.45em] uppercase mb-3 font-bold"
@@ -62,7 +60,7 @@ const CartPage = () => {
           </p>
           <div className="flex items-end justify-between">
             <h1
-              className="text-3xl font-bold text-white"
+              className="text-2xl sm:text-3xl font-bold text-white"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Shopping Cart
@@ -85,7 +83,7 @@ const CartPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-32 text-center"
+            className="flex flex-col items-center justify-center py-20 sm:py-32 text-center"
           >
             <ShoppingBag
               size={48}
@@ -100,22 +98,22 @@ const CartPage = () => {
               Your cart is empty
             </p>
             <p
-              className="text-xs mb-8 tracking-wide"
+              className="text-xs mb-8 tracking-wide px-4"
               style={{ color: "rgba(255,255,255,0.35)" }}
             >
               Add items from the Classics or Everyday Wear collection
             </p>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto px-4 sm:px-0">
               <button
                 onClick={() => navigate("/classics")}
-                className="px-6 py-3 text-xs font-bold tracking-[0.25em] uppercase transition-all hover:opacity-90"
+                className="w-full sm:w-auto px-6 py-3 text-xs font-bold tracking-[0.25em] uppercase transition-all hover:opacity-90"
                 style={{ background: "#C8A96E", color: "#1A1814" }}
               >
                 Shop Classics
               </button>
               <button
                 onClick={() => navigate("/everyday")}
-                className="px-6 py-3 text-xs font-bold tracking-[0.25em] uppercase transition-all hover:bg-white/10"
+                className="w-full sm:w-auto px-6 py-3 text-xs font-bold tracking-[0.25em] uppercase transition-all hover:bg-white/10"
                 style={{
                   border: "1px solid rgba(255,255,255,0.12)",
                   color: "rgba(255,255,255,0.6)",
@@ -126,15 +124,15 @@ const CartPage = () => {
             </div>
           </motion.div>
         ) : (
-          <div className="flex gap-12 items-start">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
 
             {/* ── Cart Items ── */}
-            <div className="flex-1">
+            <div className="w-full lg:flex-1">
               {Object.entries(groupedByProfile).map(([profileName, profileItems]) => (
-                <div key={profileName} className="mb-10">
+                <div key={profileName} className="mb-8 sm:mb-10">
 
                   {/* Profile label */}
-                  <div className="flex items-center gap-3 mb-5">
+                  <div className="flex items-center gap-3 mb-4 sm:mb-5">
                     <div
                       className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold"
                       style={{ background: "#C8A96E", color: "#1A1814" }}
@@ -158,90 +156,54 @@ const CartPage = () => {
                           initial={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3 }}
-                          className="flex gap-5 p-5"
+                          className="flex flex-col sm:flex-row gap-4 sm:gap-5 p-4 sm:p-5"
                           style={{
                             background: "rgba(255,255,255,0.03)",
                             border: "1px solid rgba(255,255,255,0.07)",
                           }}
                         >
-                          {/* Product image */}
-                          <div
-                            className="flex-shrink-0 overflow-hidden"
-                            style={{
-                              width: "80px",
-                              height: "100px",
-                              background: "#111118",
-                            }}
-                          >
-                            {item.productId?.images?.[0] ? (
-                              <img
-                                src={item.productId.images[0]}
-                                alt={item.productId?.name}
-                                className="w-full h-full object-cover opacity-80"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <ShoppingBag size={20} color="rgba(255,255,255,0.1)" />
-                              </div>
-                            )}
-                          </div>
+                          {/* Image + Top Header Row for Mobile */}
+                          <div className="flex gap-4 sm:block">
+                            <div
+                              className="flex-shrink-0 overflow-hidden"
+                              style={{
+                                width: "80px",
+                                height: "100px",
+                                background: "#111118",
+                              }}
+                            >
+                              {item.productId?.images?.[0] ? (
+                                <img
+                                  src={item.productId.images[0]}
+                                  alt={item.productId?.name}
+                                  className="w-full h-full object-cover opacity-80"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <ShoppingBag size={20} color="rgba(255,255,255,0.1)" />
+                                </div>
+                              )}
+                            </div>
 
-                          {/* Product details */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-4">
-                              <div>
-                                {/* Badge */}
-                                {item.productId?.badge && (
-                                  <span
-                                    className="inline-block text-[7px] tracking-[0.2em] px-1.5 py-0.5 mb-2 font-bold uppercase"
-                                    style={{ background: "#C8A96E", color: "#1A1814" }}
-                                  >
-                                    {item.productId.badge}
-                                  </span>
-                                )}
-
-                                {/* Name */}
-                                <h3
-                                  className="text-sm font-bold text-white mb-1 cursor-pointer hover:text-white/70 transition-colors"
-                                  style={{ fontFamily: "'Playfair Display', serif" }}
-                                  onClick={() =>
-                                    navigate(`/products/${item.productId?.slug}`)
-                                  }
+                            {/* Mobile Item Header Details */}
+                            <div className="flex-1 sm:hidden">
+                              {item.productId?.badge && (
+                                <span
+                                  className="inline-block text-[7px] tracking-[0.2em] px-1.5 py-0.5 mb-1 font-bold uppercase"
+                                  style={{ background: "#C8A96E", color: "#1A1814" }}
                                 >
-                                  {item.productId?.name}
-                                </h3>
-
-                                {/* Customizable tag */}
-                                {item.productId?.isCustomizable && (
-                                  <span
-                                    className="text-[8px] tracking-wider"
-                                    style={{ color: "#C8A96E" }}
-                                  >
-                                    Customizable
-                                  </span>
-                                )}
-
-                                {/* Customization selections */}
-                                {item.customizationSelectionId?.selections && (
-                                  <div className="mt-2 space-y-0.5">
-                                    {Object.entries(
-                                      item.customizationSelectionId.selections
-                                    ).map(([key, val]) => (
-                                      <p
-                                        key={key}
-                                        className="text-[8px] tracking-wide"
-                                        style={{ color: "rgba(255,255,255,0.3)" }}
-                                      >
-                                        {key}: {val}
-                                      </p>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Price */}
+                                  {item.productId.badge}
+                                </span>
+                              )}
+                              <h3
+                                className="text-sm font-bold text-white mb-1 cursor-pointer hover:text-white/70 transition-colors"
+                                style={{ fontFamily: "'Playfair Display', serif" }}
+                                onClick={() => navigate(`/products/${item.productId?.slug}`)}
+                              >
+                                {item.productId?.name}
+                              </h3>
                               <p
-                                className="text-sm font-bold text-white flex-shrink-0"
+                                className="text-sm font-bold text-white mt-1"
                                 style={{ fontFamily: "'Playfair Display', serif" }}
                               >
                                 ${(item.priceAtAdd * item.quantity).toLocaleString()}
@@ -253,10 +215,73 @@ const CartPage = () => {
                                 </span>
                               </p>
                             </div>
+                          </div>
 
-                            {/* Quantity + Remove */}
-                            <div className="flex items-center justify-between mt-4">
-                              {/* Quantity controls */}
+                          {/* Details (Desktop View) & Customizations */}
+                          <div className="flex-1 min-w-0 flex flex-col justify-between">
+                            <div>
+                              {/* Desktop Badge + Name + Price Header */}
+                              <div className="hidden sm:flex items-start justify-between gap-4">
+                                <div>
+                                  {item.productId?.badge && (
+                                    <span
+                                      className="inline-block text-[7px] tracking-[0.2em] px-1.5 py-0.5 mb-2 font-bold uppercase"
+                                      style={{ background: "#C8A96E", color: "#1A1814" }}
+                                    >
+                                      {item.productId.badge}
+                                    </span>
+                                  )}
+                                  <h3
+                                    className="text-sm font-bold text-white mb-1 cursor-pointer hover:text-white/70 transition-colors"
+                                    style={{ fontFamily: "'Playfair Display', serif" }}
+                                    onClick={() => navigate(`/products/${item.productId?.slug}`)}
+                                  >
+                                    {item.productId?.name}
+                                  </h3>
+                                </div>
+
+                                <p
+                                  className="text-sm font-bold text-white flex-shrink-0"
+                                  style={{ fontFamily: "'Playfair Display', serif" }}
+                                >
+                                  ${(item.priceAtAdd * item.quantity).toLocaleString()}
+                                  <span
+                                    className="text-[9px] ml-1 font-normal"
+                                    style={{ color: "rgba(255,255,255,0.35)" }}
+                                  >
+                                    CAD
+                                  </span>
+                                </p>
+                              </div>
+
+                              {/* Customizations */}
+                              {item.productId?.isCustomizable && (
+                                <span
+                                  className="text-[8px] tracking-wider block"
+                                  style={{ color: "#C8A96E" }}
+                                >
+                                  Customizable
+                                </span>
+                              )}
+                              {item.customizationSelectionId?.selections && (
+                                <div className="mt-1 sm:mt-2 space-y-0.5">
+                                  {Object.entries(
+                                    item.customizationSelectionId.selections
+                                  ).map(([key, val]) => (
+                                    <p
+                                      key={key}
+                                      className="text-[8px] tracking-wide"
+                                      style={{ color: "rgba(255,255,255,0.3)" }}
+                                    >
+                                      {key}: {val}
+                                    </p>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Quantity + Remove Row */}
+                            <div className="flex items-center justify-between mt-4 pt-2 border-t border-white/5 sm:border-0 sm:pt-0">
                               <div
                                 className="flex items-center gap-0"
                                 style={{ border: "1px solid rgba(255,255,255,0.1)" }}
@@ -272,7 +297,10 @@ const CartPage = () => {
                                 </button>
                                 <span
                                   className="w-8 h-8 flex items-center justify-center text-xs font-bold text-white"
-                                  style={{ borderLeft: "1px solid rgba(255,255,255,0.1)", borderRight: "1px solid rgba(255,255,255,0.1)" }}
+                                  style={{
+                                    borderLeft: "1px solid rgba(255,255,255,0.1)",
+                                    borderRight: "1px solid rgba(255,255,255,0.1)",
+                                  }}
                                 >
                                   {item.quantity}
                                 </span>
@@ -287,7 +315,6 @@ const CartPage = () => {
                                 </button>
                               </div>
 
-                              {/* Remove */}
                               <button
                                 onClick={() => handleRemove(item._id)}
                                 disabled={removingId === item._id}
@@ -312,17 +339,15 @@ const CartPage = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex-shrink-0"
-              style={{ width: "300px" }}
+              className="w-full lg:w-[300px] lg:flex-shrink-0"
             >
               <div
-                className="p-7"
+                className="p-5 sm:p-7"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   border: "1px solid rgba(255,255,255,0.08)",
                 }}
               >
-                {/* Title */}
                 <p
                   className="text-[9px] tracking-[0.4em] uppercase mb-6 font-bold"
                   style={{ color: "#C8A96E" }}
@@ -330,7 +355,6 @@ const CartPage = () => {
                   Order Summary
                 </p>
 
-                {/* Line items */}
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
@@ -358,17 +382,13 @@ const CartPage = () => {
                   </div>
                 </div>
 
-                {/* Divider */}
                 <div
                   className="h-px mb-5"
                   style={{ background: "rgba(255,255,255,0.07)" }}
                 />
 
-                {/* Total */}
                 <div className="flex justify-between mb-8">
-                  <span
-                    className="text-xs font-bold text-white tracking-wider"
-                  >
+                  <span className="text-xs font-bold text-white tracking-wider">
                     Total
                   </span>
                   <div className="text-right">
@@ -387,41 +407,38 @@ const CartPage = () => {
                   </div>
                 </div>
 
-                {/* Checkout button */}
-<button
-  onClick={() => {
-    // 1. Console log the data being sent
-    console.log("Navigating to checkout with state:", {
-      cartItems: items,
-      subtotal,
-      shippingCost,
-      tax,
-      totalPrice,
-    });
+                <button
+                  onClick={() => {
+                    console.log("Navigating to checkout with state:", {
+                      cartItems: items,
+                      subtotal,
+                      shippingCost,
+                      tax,
+                      totalPrice,
+                    });
 
-    // 2. Perform the navigation
-    navigate("/checkout", {
-      state: {
-        cartItems: items,
-        subtotal,
-        shippingCost,
-        tax,
-        totalPrice,
-      },
-    });
-  }}
-  className="w-full py-4 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 hover:opacity-90 flex items-center justify-center gap-2"
-  style={{ background: "#C8A96E", color: "#1A1814" }}
->
-  Proceed to Checkout
-  <ArrowRight size={13} />
-</button>
-                {/* Guarantees */}
+                    navigate("/checkout", {
+                      state: {
+                        cartItems: items,
+                        subtotal,
+                        shippingCost,
+                        tax,
+                        totalPrice,
+                      },
+                    });
+                  }}
+                  className="w-full py-4 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 hover:opacity-90 flex items-center justify-center gap-2"
+                  style={{ background: "#C8A96E", color: "#1A1814" }}
+                >
+                  Proceed to Checkout
+                  <ArrowRight size={13} />
+                </button>
+
                 <div className="mt-5 space-y-2">
                   {[
-                    "✓  Fit Right Guarantee",
-                    "✓  Free returns within 30 days",
-                    "✓  Complimentary alterations",
+                    "✓ Fit Right Guarantee",
+                    "✓ Free returns within 30 days",
+                    "✓ Complimentary alterations",
                   ].map((text) => (
                     <p
                       key={text}
@@ -434,7 +451,6 @@ const CartPage = () => {
                 </div>
               </div>
 
-              {/* Continue shopping */}
               <button
                 onClick={() => navigate("/classics")}
                 className="w-full mt-4 py-3 text-xs font-bold tracking-[0.25em] uppercase transition-all hover:bg-white/5"

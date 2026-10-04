@@ -25,6 +25,7 @@ export default function CheckoutPage() {
       navigate("/cart", { replace: true });
       return;
     }
+    console.log(checkoutData)
 
     // 2. Fetch Stripe PaymentIntent using total price from location state
     const fetchPaymentIntent = async () => {
@@ -47,15 +48,24 @@ export default function CheckoutPage() {
 
     fetchPaymentIntent();
   }, [checkoutData, navigate]);
-
-  // 3. Callback executed when Stripe payment succeeds
+// 3. Callback executed when Stripe payment succeeds
   const handlePaymentSuccess = async (stripePaymentIntentId) => {
     try {
       const token = localStorage.getItem("token");
 
+      // Map cart items: map 'priceAtAdd' to top-level 'price' & extract string IDs
+      const formattedItems = (checkoutData.cartItems || []).map((item) => ({
+        productId: item.productId?._id || item.productId,
+        profileId: item.profileId?._id || item.profileId,
+        customizationSelectionId: item.customizationSelectionId?._id || item.customizationSelectionId,
+        quantity: item.quantity,
+        additionalFee: item.additionalFee || 0,
+        price: Number(item.priceAtAdd ?? item.productId?.price ?? item.price ?? 0),
+      }));
+
       // Save order record to MongoDB
       const orderPayload = {
-        items: checkoutData.cartItems,
+        items: formattedItems,
         shippingAddress: checkoutData.shippingAddress || {
           line1: "123 Main St",
           city: "Vaughan",
@@ -82,7 +92,7 @@ export default function CheckoutPage() {
         navigate(`/order-confirmation/${res.data.order._id}`);
       }
     } catch (err) {
-      console.error("Failed to save order record:", err);
+      console.error("Failed to save order record:", err.response?.data || err.message);
       alert("Payment was successful, but saving order failed. Please contact support.");
     }
   };
