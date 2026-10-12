@@ -94,7 +94,7 @@ const [isFavourite, setIsFavourite] = useState(false);
             size={12}
             strokeWidth={1.5}
             color={isFavorited ? "#C8A96E" : "rgba(255,255,255,0.6)"}
-            fill={isFavorited ? "#C8A96E" : "none"}
+            fill={isFavorited ? "#ff3300" : "none"}
           />
         </motion.button>
 
@@ -114,19 +114,19 @@ const [isFavourite, setIsFavourite] = useState(false);
       {/* Product info */}
       <div>
         <h3
-          className="text-xs font-semibold text-white mb-1 truncate"
+          className="text-xs font-semibold text-black mb-1 truncate"
           style={{ letterSpacing: "0.05em" }}
         >
           {product.name}
         </h3>
         <div className="flex items-center gap-2">
           <span
-            className="text-sm font-bold text-white"
+            className="text-sm font-bold text-black"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             ${product.price.toLocaleString()}
           </span>
-          <span className="text-[9px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+          <span className="text-[9px]" style={{ color: "black" }}>
             CAD
           </span>
         </div>
@@ -233,7 +233,7 @@ const [selectedSubcategory, setSelectedSubcategory] = useState("");
   return (
     <div
       className="min-h-screen pt-[46px]"
-      style={{ background: "#09090E", fontFamily: "'Montserrat', sans-serif" }}
+      style={{ background: "#FDFBF7", fontFamily: "'Montserrat', sans-serif" }}
     >
       <div className="max-w-7xl mx-auto px-8 py-12">
 
@@ -248,12 +248,12 @@ const [selectedSubcategory, setSelectedSubcategory] = useState("");
             <button
               onClick={() => navigate(`/${section}`)}
               className="transition-colors hover:text-white/70"
-              style={{ color: "rgba(255,255,255,0.35)" }}
+              style={{ color: "rgba(2, 0, 0, 0.35)" }}
             >
               {section === "classics" ? "CLASSICS" : "EVERYDAY WEAR"}
             </button>
-            <span style={{ color: "rgba(255,255,255,0.2)" }}>›</span>
-            <span style={{ color: "rgba(255,255,255,0.7)" }}>
+            <span style={{ color: "rgba(0, 0, 0, 0.2)" }}>›</span>
+            <span style={{ color: "rgba(11, 1, 1, 0.7)" }}>
               {category?.name?.toUpperCase() || categorySlug?.toUpperCase()}
             </span>
           </div>
@@ -261,12 +261,12 @@ const [selectedSubcategory, setSelectedSubcategory] = useState("");
           <div className="flex items-end justify-between">
             <div>
               <h1
-                className="text-3xl font-bold text-white mb-1"
+                className="text-3xl font-bold text-black mb-1"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 {category?.name || "Collection"}
               </h1>
-              <p className="text-[10px] tracking-wider" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <p className="text-[10px] tracking-wider" style={{ color: "rgba(0, 0, 0, 0.44)" }}>
                 {total} {total === 1 ? "item" : "items"} ·{" "}
                 {section === "classics" ? "Made to Measure · Bespoke Craftsmanship" : "Off the Rack · Ready to Wear"}
               </p>
@@ -278,8 +278,8 @@ const [selectedSubcategory, setSelectedSubcategory] = useState("");
                 onClick={() => setShowSort(!showSort)}
                 className="flex items-center gap-2 px-4 py-2.5 text-[10px] tracking-wider transition-colors hover:bg-white/5"
                 style={{
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.6)",
+                  border: "1px solid rgba(20, 2, 2, 0.1)",
+                  color: "rgba(33, 6, 6, 0.6)",
                 }}
               >
                 <SlidersHorizontal size={11} />
@@ -344,8 +344,8 @@ const [selectedSubcategory, setSelectedSubcategory] = useState("");
       style={{
         // Dynamically color it if "All" is active
         background: selectedSubcategory === "" ? "#C8A96E" : "transparent",
-        color: selectedSubcategory === "" ? "#1A1814" : "rgba(255,255,255,0.45)",
-        border: selectedSubcategory === "" ? "none" : "1px solid rgba(255,255,255,0.1)"
+        color: selectedSubcategory === "" ? "#1A1814" : "rgba(12, 8, 8, 0.45)",
+        border: selectedSubcategory === "" ? "none" : "1px solid rgba(0, 0, 0, 0.1)"
       }}
     >
       All
@@ -362,8 +362,8 @@ const [selectedSubcategory, setSelectedSubcategory] = useState("");
         className="flex-shrink-0 px-4 py-1.5 text-[9px] tracking-[0.25em] uppercase"
         style={{
           background: selectedSubcategory === sub.slug ? "#C8A96E" : "transparent",
-          color: selectedSubcategory === sub.slug ? "#1A1814" : "rgba(255,255,255,0.45)",
-          border: selectedSubcategory === sub.slug ? "none" : "1px solid rgba(255,255,255,0.1)",
+          color: selectedSubcategory === sub.slug ? "#1A1814" : "rgba(0, 0, 0, 0.45)",
+          border: selectedSubcategory === sub.slug ? "none" : "1px solid rgba(3, 0, 0, 0.1)",
         }}
       >
         {sub.name}
@@ -405,7 +405,7 @@ const [selectedSubcategory, setSelectedSubcategory] = useState("");
             </p>
             <p
               className="text-xs tracking-wide"
-              style={{ color: "rgba(255,255,255,0.35)" }}
+              style={{ color: "rgba(0, 0, 0, 0.35)" }}
             >
               Check back soon — new pieces are added regularly.
             </p>

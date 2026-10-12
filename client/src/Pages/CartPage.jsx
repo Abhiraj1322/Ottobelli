@@ -42,7 +42,7 @@ const CartPage = () => {
   return (
     <div
       className="min-h-screen pt-[46px]"
-      style={{ background: "#09090E", fontFamily: "'Montserrat', sans-serif" }}
+      style={{ background: "#FDFBF7", fontFamily: "'Montserrat', sans-serif" }}
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
 
@@ -60,7 +60,7 @@ const CartPage = () => {
           </p>
           <div className="flex items-end justify-between">
             <h1
-              className="text-2xl sm:text-3xl font-bold text-white"
+              className="text-2xl sm:text-3xl font-bold text-black"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Shopping Cart
@@ -69,13 +69,13 @@ const CartPage = () => {
               <button
                 onClick={clearCart}
                 className="text-[9px] tracking-wider transition-colors hover:text-white/50 underline underline-offset-2"
-                style={{ color: "#9A9080" }}
+                style={{ color: "#000000" }}
               >
                 Clear Cart
               </button>
             )}
           </div>
-          <div className="mt-4 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+          <div className="mt-4 h-px" style={{ background: "rgba(0, 0, 0, 0.07)" }} />
         </motion.div>
 
         {/* ── Empty Cart ── */}
@@ -88,18 +88,18 @@ const CartPage = () => {
             <ShoppingBag
               size={48}
               strokeWidth={1}
-              color="rgba(255,255,255,0.1)"
+              color="rgba(4, 0, 0, 0.1)"
               className="mb-6"
             />
             <p
-              className="text-white font-bold text-xl mb-3"
+              className="text-black font-bold text-xl mb-3"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Your cart is empty
             </p>
             <p
               className="text-xs mb-8 tracking-wide px-4"
-              style={{ color: "rgba(255,255,255,0.35)" }}
+              style={{ color: "rgba(2, 0, 0, 0.35)" }}
             >
               Add items from the Classics or Everyday Wear collection
             </p>
@@ -115,8 +115,8 @@ const CartPage = () => {
                 onClick={() => navigate("/everyday")}
                 className="w-full sm:w-auto px-6 py-3 text-xs font-bold tracking-[0.25em] uppercase transition-all hover:bg-white/10"
                 style={{
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "rgba(255,255,255,0.6)",
+                  border: "1px solid rgba(0, 0, 0, 0.12)",
+                  color: "#1A1814",
                 }}
               >
                 Shop Everyday
@@ -158,8 +158,8 @@ const CartPage = () => {
                           transition={{ duration: 0.3 }}
                           className="flex flex-col sm:flex-row gap-4 sm:gap-5 p-4 sm:p-5"
                           style={{
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(255,255,255,0.07)",
+                            background: "rgba(0, 0, 0, 0.03)",
+                            border: "1px solid rgba(1, 1, 1, 0.07)",
                           }}
                         >
                           {/* Image + Top Header Row for Mobile */}
@@ -180,7 +180,7 @@ const CartPage = () => {
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <ShoppingBag size={20} color="rgba(255,255,255,0.1)" />
+                                  <ShoppingBag size={20} color="rgba(0, 0, 0, 0.1)" />
                                 </div>
                               )}
                             </div>
@@ -196,20 +196,20 @@ const CartPage = () => {
                                 </span>
                               )}
                               <h3
-                                className="text-sm font-bold text-white mb-1 cursor-pointer hover:text-white/70 transition-colors"
+                                className="text-sm font-bold text-black mb-1 cursor-pointer hover:text-white/70 transition-colors"
                                 style={{ fontFamily: "'Playfair Display', serif" }}
                                 onClick={() => navigate(`/products/${item.productId?.slug}`)}
                               >
                                 {item.productId?.name}
                               </h3>
                               <p
-                                className="text-sm font-bold text-white mt-1"
+                                className="text-sm font-bold text-black mt-1"
                                 style={{ fontFamily: "'Playfair Display', serif" }}
                               >
                                 ${(item.priceAtAdd * item.quantity).toLocaleString()}
                                 <span
                                   className="text-[9px] ml-1 font-normal"
-                                  style={{ color: "rgba(255,255,255,0.35)" }}
+                                  style={{ color: "rgba(2, 0, 0, 0.35)" }}
                                 >
                                   CAD
                                 </span>
@@ -232,7 +232,7 @@ const CartPage = () => {
                                     </span>
                                   )}
                                   <h3
-                                    className="text-sm font-bold text-white mb-1 cursor-pointer hover:text-white/70 transition-colors"
+                                    className="text-sm font-bold text-black mb-1 cursor-pointer hover:text-black/70 transition-colors"
                                     style={{ fontFamily: "'Playfair Display', serif" }}
                                     onClick={() => navigate(`/products/${item.productId?.slug}`)}
                                   >
@@ -241,13 +241,13 @@ const CartPage = () => {
                                 </div>
 
                                 <p
-                                  className="text-sm font-bold text-white flex-shrink-0"
+                                  className="text-sm font-bold text-black flex-shrink-0"
                                   style={{ fontFamily: "'Playfair Display', serif" }}
                                 >
                                   ${(item.priceAtAdd * item.quantity).toLocaleString()}
                                   <span
                                     className="text-[9px] ml-1 font-normal"
-                                    style={{ color: "rgba(255,255,255,0.35)" }}
+                                    style={{ color: "rgba(0, 0, 0, 0.35)" }}
                                   >
                                     CAD
                                   </span>
@@ -271,7 +271,7 @@ const CartPage = () => {
                                     <p
                                       key={key}
                                       className="text-[8px] tracking-wide"
-                                      style={{ color: "rgba(255,255,255,0.3)" }}
+                                      style={{ color: "rgba(10, 0, 0, 0.3)" }}
                                     >
                                       {key}: {val}
                                     </p>
@@ -284,22 +284,22 @@ const CartPage = () => {
                             <div className="flex items-center justify-between mt-4 pt-2 border-t border-white/5 sm:border-0 sm:pt-0">
                               <div
                                 className="flex items-center gap-0"
-                                style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                                style={{ border: "2px solid rgba(0, 0, 0, 0.1)" }}
                               >
                                 <button
                                   onClick={() =>
                                     handleQuantity(item._id, item.quantity, "dec")
                                   }
                                   className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-white/10"
-                                  style={{ color: "rgba(255,255,255,0.5)" }}
+                                  style={{ color: "rgba(8, 1, 1, 0.5)" }}
                                 >
                                   <Minus size={11} />
                                 </button>
                                 <span
-                                  className="w-8 h-8 flex items-center justify-center text-xs font-bold text-white"
+                                  className="w-8 h-8 flex items-center justify-center text-xs font-bold text-black"
                                   style={{
-                                    borderLeft: "1px solid rgba(255,255,255,0.1)",
-                                    borderRight: "1px solid rgba(255,255,255,0.1)",
+                                    borderLeft: "1px solid rgba(10, 0, 0, 0.1)",
+                                    borderRight: "1px solid rgba(18, 0, 0, 0.1)",
                                   }}
                                 >
                                   {item.quantity}
@@ -309,7 +309,7 @@ const CartPage = () => {
                                     handleQuantity(item._id, item.quantity, "inc")
                                   }
                                   className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-white/10"
-                                  style={{ color: "rgba(255,255,255,0.5)" }}
+                                  style={{ color: "rgba(3, 0, 0, 0.5)" }}
                                 >
                                   <Plus size={11} />
                                 </button>
@@ -319,9 +319,9 @@ const CartPage = () => {
                                 onClick={() => handleRemove(item._id)}
                                 disabled={removingId === item._id}
                                 className="flex items-center gap-1.5 text-[9px] tracking-wider transition-colors hover:text-red-400 disabled:opacity-40"
-                                style={{ color: "rgba(255,255,255,0.25)" }}
+                                style={{ color: "rgba(0, 0, 0, 0.25)" }}
                               >
-                                <Trash2 size={11} />
+                                <Trash2 size={12} />
                                 Remove
                               </button>
                             </div>
@@ -344,8 +344,8 @@ const CartPage = () => {
               <div
                 className="p-5 sm:p-7"
                 style={{
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(16, 1, 1, 0.03)",
+                  border: "1px solid rgba(104, 101, 101, 0.08)",
                 }}
               >
                 <p
@@ -357,26 +357,26 @@ const CartPage = () => {
 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
-                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                    <span className="text-xs" style={{ color: "rgba(1, 0, 0, 0.45)" }}>
                       Subtotal ({items.length} {items.length === 1 ? "item" : "items"})
                     </span>
-                    <span className="text-xs font-bold text-white">
+                    <span className="text-xs font-bold text-black">
                       ${total.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                    <span className="text-xs" style={{ color: "rgba(25, 3, 3, 0.45)" }}>
                       Shipping
                     </span>
-                    <span className="text-xs" style={{ color: "#C8A96E" }}>
+                    <span className="text-xs" style={{ color: "#000000" }}>
                       {total >= 500 ? "Free" : "Calculated at checkout"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                    <span className="text-xs" style={{ color: "rgba(0, 0, 0, 0.45)" }}>
                       Alterations
                     </span>
-                    <span className="text-xs" style={{ color: "#C8A96E" }}>
+                    <span className="text-xs" style={{ color: "#000000" }}>
                       Complimentary
                     </span>
                   </div>
@@ -384,23 +384,23 @@ const CartPage = () => {
 
                 <div
                   className="h-px mb-5"
-                  style={{ background: "rgba(255,255,255,0.07)" }}
+                  style={{ background: "rgba(19, 1, 1, 0.07)" }}
                 />
 
                 <div className="flex justify-between mb-8">
-                  <span className="text-xs font-bold text-white tracking-wider">
+                  <span className="text-xs font-bold text-black tracking-wider">
                     Total
                   </span>
                   <div className="text-right">
                     <span
-                      className="text-lg font-bold text-white"
+                      className="text-lg font-bold text-black"
                       style={{ fontFamily: "'Playfair Display', serif" }}
                     >
                       ${total.toLocaleString()}
                     </span>
                     <span
                       className="text-[9px] ml-1"
-                      style={{ color: "rgba(255,255,255,0.35)" }}
+                      style={{ color: "rgba(19, 3, 3, 0.35)" }}
                     >
                       CAD
                     </span>
@@ -409,13 +409,7 @@ const CartPage = () => {
 
                 <button
                   onClick={() => {
-                    console.log("Navigating to checkout with state:", {
-                      cartItems: items,
-                      subtotal,
-                      shippingCost,
-                      tax,
-                      totalPrice,
-                    });
+                 
 
                     navigate("/checkout", {
                       state: {
@@ -427,11 +421,11 @@ const CartPage = () => {
                       },
                     });
                   }}
-                  className="w-full py-4 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 hover:opacity-90 flex items-center justify-center gap-2"
+                  className="w-full  py-5 text-xs font-bold tracking-[0.3em] uppercase transition-all duration-200 hover:opacity-90 flex items-center justify-center gap-2"
                   style={{ background: "#C8A96E", color: "#1A1814" }}
                 >
                   Proceed to Checkout
-                  <ArrowRight size={13} />
+                  <ArrowRight size={10} />
                 </button>
 
                 <div className="mt-5 space-y-2">
