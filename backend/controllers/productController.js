@@ -85,5 +85,28 @@ const getRelatedProducts = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+
+const getBestSellers = async (req, res) => {
+  try {
+    const bestSellers = await Product.find({
+      badge: "Best Seller",
+    })
+      .select("name slug price currency images badge rating")
+      .sort({ priority: -1, createdAt: -1 })
+      .limit(8);
+
+    res.status(200).json({
+      bestSellers,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
+  }
+};
+
+
  
-module.exports = { getProducts, getProductBySlug, getRelatedProducts };
+module.exports = { getProducts, getProductBySlug, getRelatedProducts,getBestSellers };

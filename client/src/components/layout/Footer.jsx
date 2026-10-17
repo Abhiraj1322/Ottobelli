@@ -1,124 +1,143 @@
 // src/components/Footer.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, Phone } from 'lucide-react';
-import { FaInstagram, FaXTwitter, FaFacebookF } from 'react-icons/fa6'; // FontAwesome Social Icons
 
 const Footer = () => {
+  const [email, setEmail] = useState('');
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    if (email) {
+      // Handle newsletter subscription logic here
+      setEmail('');
+    }
+  };
+
   return (
-    <footer 
-      className="border-t border-[#E8E2D5] pt-16 pb-8 px-6 md:px-12 transition-colors"
-      style={{ background: "#FDFBF7", color: "#1A1814" }}
-    >
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-[#E8E2D5]">
+    <footer className="bg-[#141414] text-gray-300 pt-14 pb-8">
+      <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 md:grid-cols-5 gap-8 pb-10 border-b border-gray-800 text-sm">
         
-        {/* Brand Column */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold tracking-widest uppercase text-[#C5A059]">
-            ATELIER
-          </h2>
-          <p className="text-xs text-[#635E54] leading-relaxed max-w-sm">
-            Crafting bespoke Made-to-Measure classics and refined everyday essentials. Exceptional tailoring made for the modern wardrobe.
+        {/* Brand Description Column */}
+        <div className="md:col-span-1 space-y-3">
+          <h4 className="text-white text-xs font-semibold uppercase tracking-widest">
+            Ottobelli
+          </h4>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            Made-to-measure menswear storefront built with standard garments and precision fit guarantees.
           </p>
-          <div className="flex space-x-4 pt-2">
-            <a href="#" className="text-[#7A7365] hover:text-[#C5A059] transition-colors">
-              <FaInstagram size={18} />
-            </a>
-            <a href="#" className="text-[#7A7365] hover:text-[#C5A059] transition-colors">
-              <FaXTwitter size={18} />
-            </a>
-            <a href="#" className="text-[#7A7365] hover:text-[#C5A059] transition-colors">
-              <FaFacebookF size={18} />
-            </a>
-          </div>
         </div>
-
-        {/* Collections */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-widest text-[#1A1814]">
-            Collections
+        
+        {/* Classics Column */}
+        <div>
+          <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-3">
+            Classics
           </h4>
-          <ul className="space-y-2 text-xs text-[#635E54]">
+          <ul className="space-y-2 text-xs">
             <li>
-              <Link to="/products?section=classics" className="hover:text-[#C5A059] transition-colors">
-                Made to Measure Classics
+              <Link to="/classics/suits" className="hover:underline text-gray-300 transition-colors">
+                Suits
               </Link>
             </li>
             <li>
-              <Link to="/products?section=everyday" className="hover:text-[#C5A059] transition-colors">
-                Everyday Wear
+              <Link to="/classics/blazers" className="hover:underline text-gray-300 transition-colors">
+                Blazers
               </Link>
             </li>
             <li>
-              <Link to="/products?category=suits" className="hover:text-[#C5A059] transition-colors">
-                Custom Suits & Jackets
+              <Link to="/classics/tuxedos" className="hover:underline text-gray-300 transition-colors">
+                Tuxedos
               </Link>
             </li>
             <li>
-              <Link to="/products?category=t-shirts" className="hover:text-[#C5A059] transition-colors">
-                Essential T-Shirts
+              <Link to="/classics/dress-shirts" className="hover:underline text-gray-300 transition-colors">
+                Dress Shirts
               </Link>
             </li>
           </ul>
         </div>
 
-        {/* Client Care */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-widest text-[#1A1814]">
-            Client Care
+        {/* Everyday Column */}
+        <div>
+          <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-3">
+            Everyday
           </h4>
-          <ul className="space-y-2 text-xs text-[#635E54]">
+          <ul className="space-y-2 text-xs">
             <li>
-              <Link to="/profiles" className="hover:text-[#C5A059] transition-colors">
-                Measurement Profiles
+              <Link to="/everyday/casual-shirts" className="hover:underline text-gray-300 transition-colors">
+                Casual Shirts
               </Link>
             </li>
             <li>
-              <Link to="/orders" className="hover:text-[#C5A059] transition-colors">
-                Track Order
+              <Link to="/everyday/chinos" className="hover:underline text-gray-300 transition-colors">
+                Chinos
               </Link>
             </li>
             <li>
-              <Link to="/fitting-guide" className="hover:text-[#C5A059] transition-colors">
-                Fitting & Alterations
-              </Link>
-            </li>
-            <li>
-              <Link to="/contact" className="hover:text-[#C5A059] transition-colors">
-                Contact & Consultations
+              <Link to="/everyday/outerwear" className="hover:underline text-gray-300 transition-colors">
+                Outerwear
               </Link>
             </li>
           </ul>
         </div>
 
-        {/* Atelier Contact */}
-        <div className="space-y-3 text-xs text-[#635E54]">
-          <h4 className="text-xs font-bold uppercase tracking-widest text-[#1A1814]">
-            Atelier
+        {/* Help Column */}
+        <div>
+          <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-3">
+            Help
           </h4>
-          <div className="flex items-center space-x-2">
-            <MapPin size={14} className="text-[#C5A059]" />
-            <span>Greater Toronto Area, Ontario</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Mail size={14} className="text-[#C5A059]" />
-            <span>concierge@atelier.com</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Phone size={14} className="text-[#C5A059]" />
-            <span>+1 (800) 555-0199</span>
-          </div>
+          <ul className="space-y-2 text-xs">
+            <li>
+              <Link to="/fit-guarantee" className="hover:underline text-gray-300 transition-colors">
+                Fit Guarantee
+              </Link>
+            </li>
+            <li>
+              <Link to="/fitting" className="hover:underline text-gray-300 transition-colors">
+                Book a Fitting
+              </Link>
+            </li>
+            <li>
+              <Link to="/shipping" className="hover:underline text-gray-300 transition-colors">
+                Shipping & Returns
+              </Link>
+            </li>
+          </ul>
         </div>
 
+        {/* Newsletter Subscription Form */}
+        <div>
+          <h4 className="text-white text-xs font-semibold uppercase tracking-widest mb-3">
+            Newsletter
+          </h4>
+          <form onSubmit={handleNewsletterSubmit} className="flex border-b border-gray-500 pb-1">
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Your email address" 
+              className="bg-transparent text-white outline-none text-xs w-full placeholder-gray-500"
+              required
+            />
+            <button 
+              type="submit" 
+              className="text-xs uppercase font-bold text-white tracking-widest hover:text-gray-300 transition-colors"
+            >
+              Join
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="max-w-7xl mx-auto pt-6 flex flex-col md:flex-row justify-between items-center text-[10px] text-[#8C857B] tracking-wider">
-        <p>© {new Date().getFullYear()} ATELIER LOGISTICS INC. ALL RIGHTS RESERVED.</p>
-        <div className="flex space-x-6 mt-4 md:mt-0">
-          <Link to="/privacy" className="hover:text-[#1A1814] transition-colors">PRIVACY POLICY</Link>
-          <Link to="/terms" className="hover:text-[#1A1814] transition-colors">TERMS OF SERVICE</Link>
-          <Link to="/shipping" className="hover:text-[#1A1814] transition-colors">SHIPPING & RETURNS</Link>
+      <div className="max-w-[1440px] mx-auto px-4 pt-6 flex justify-between items-center text-xs text-gray-500 flex-wrap gap-4">
+        <span>&copy; {new Date().getFullYear()} Ottobelli. All rights reserved.</span>
+        <div className="flex gap-4">
+          <Link to="/privacy" className="hover:underline transition-colors">
+            Privacy Policy
+          </Link>
+          <Link to="/terms" className="hover:underline transition-colors">
+            Terms of Service
+          </Link>
         </div>
       </div>
     </footer>

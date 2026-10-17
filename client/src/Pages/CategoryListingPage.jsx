@@ -190,6 +190,7 @@ const [selectedSubcategory, setSelectedSubcategory] = useState("");
     };
     fetchCategory();
   }, [categorySlug]);
+  console.log(category)
 
   // Fetch products
   useEffect(() => {

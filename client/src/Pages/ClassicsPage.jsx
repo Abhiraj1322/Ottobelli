@@ -23,6 +23,7 @@ const ClassicsPage = () => {
     };
     fetchCategories();
   }, []);
+  console.log(categories)
   return (
   <div
       className="min-h-screen pt-[46px] w-full overflow-hidden"
