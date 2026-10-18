@@ -51,7 +51,7 @@ useEffect(() => {
 
   }, []);
 
-console.log(bestseller)
+
   return (
     <div className="min-h-screen bg-white font-sans text-stone-900 antialiased">
 
