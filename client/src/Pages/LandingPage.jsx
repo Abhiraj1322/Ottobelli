@@ -4,6 +4,7 @@ export default function LandingPage() {
   
   const [categories, setCategories] = useState([]);
   const[everyday,seteveryday]=useState([])
+    const[bestseller,setbestseller]=useState([])
 const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchCategories = async () => {
@@ -35,7 +36,22 @@ useEffect(() => {
     fetchCategories();
 
   }, []);
+useEffect(() => {
+    const fetchBestseller = async () => {
+      try {
+        const res = await api.get("/api/products/best-sellers");
+        setbestseller(res.data.categories);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBestseller();
 
+  }, []);
+
+console.log(bestseller)
   return (
     <div className="min-h-screen bg-white font-sans text-stone-900 antialiased">
 

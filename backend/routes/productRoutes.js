@@ -4,6 +4,7 @@ const { getProducts, getProductBySlug, getRelatedProducts,getBestSellers } = req
 
 router.get("/", getProducts);
 router.get("/:slug", getProductBySlug);
-router.get("/:id/related", getRelatedProducts);
 router.get("/best-sellers", getBestSellers);
+router.get("/:id/related", getRelatedProducts);
+
 module.exports = router;

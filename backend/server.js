@@ -59,6 +59,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/admin/",adminRoutes)
 app.use("/api/payment", paymentRoutes);
 app.use("/api/orders", orderRoutes);
+
 // Basic Test Route
 app.get('/', (req, res) => {
   res.send('Ottobelli API is running successfully.');
