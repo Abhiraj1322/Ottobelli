@@ -1,11 +1,12 @@
 const { google } = require("googleapis");
 
+const privateKey = process.env.GOOGLE_PRIVATE_KEY
+  ?.replace(/^"|"$/g, "")
+  .replace(/\\n/g, "\n");
+
 const auth = new google.auth.JWT({
   email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-
-  // Convert escaped \n into actual line breaks
-  key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-
+  key: privateKey,
   scopes: [
     "https://www.googleapis.com/auth/spreadsheets.readonly",
   ],
