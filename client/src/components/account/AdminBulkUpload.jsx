@@ -43,7 +43,7 @@ export default function ProductSheetSync() {
 
     try {
       const response = await api.post(
-        "/sync/products",
+        "/api/sync/products",
         null,
         {
           params: sheet ? { sheet } : {},
