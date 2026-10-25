@@ -1,51 +1,42 @@
 
-const mongoose = require("mongoose");
-const Category = require("./models/Category");
 require("dotenv").config();
 
-const categories = [
+const mongoose = require("mongoose");
+const Category = require("../backend/models/Category");
+
+// All parent categories and their subcategories
+const categoryData = [
   {
-    name: "Suits and Blazers",
-    slug: "suits-and-blazers",
     section: "classics",
-    order: 1,
-    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea",
-    subcategories: ["Suits", "Blazers", "Tuxedos"]
+    name: "Suits and Blazers",
+    subcategories: ["Suits", "Blazers", "Tuxedos"],
   },
   {
-    name: "Dress Shirts",
-    slug: "dress-shirts",
     section: "classics",
-    order: 2,
-    image: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10",
+    name: "Dress Shirts",
     subcategories: [
       "100% Cotton",
       "Cotton-Silk Blend",
-      "Cotton-Polyester Blend"
-    ]
+      "Cotton-Polyester Blend",
+    ],
   },
   {
+    section: "classics",
     name: "Pants",
-    slug: "pants",
-    section: "classics",
-    order: 3,
-    image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80",
-    subcategories: ["Pants"]
+    subcategories: ["Pants"],
   },
   {
+    section: "classics",
     name: "Outerwear",
-    slug: "outerwear",
-    section: "classics",
-    order: 4,
-    image: "https://images.unsplash.com/photo-1544923246-77307dd654cb",
-    subcategories: ["Overcoats", "Trench Coats", "Leather Jackets"]
+    subcategories: [
+      "Overcoats",
+      "Trench Coats",
+      "Leather Jackets",
+    ],
   },
   {
-    name: "Accessories",
-    slug: "accessories",
     section: "classics",
-    order: 5,
-    image: "https://images.unsplash.com/photo-1611652022419-a9419f74343d",
+    name: "Accessories",
     subcategories: [
       "Belts",
       "Ties & Bow Ties",
@@ -53,130 +44,136 @@ const categories = [
       "Cufflinks & Tie Bars",
       "Suspenders / Braces",
       "Scarves & Gloves",
-      "Shoes"
-    ]
+      "Shoes",
+    ],
   },
   {
+    section: "everyday",
     name: "Shirts",
-    slug: "shirts",
-    section: "everyday",
-    order: 1,
-    image: "https://images.unsplash.com/photo-1603252109303-2751441dd157",
-    subcategories: ["Long Sleeve", "Short Sleeve", "Polo Shirts"]
+    subcategories: [
+      "Long Sleeve",
+      "Short Sleeve",
+      "Polo Shirts",
+    ],
   },
   {
+    section: "everyday",
     name: "Sweaters",
-    slug: "sweaters",
-    section: "everyday",
-    order: 2,
-    image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27",
-    subcategories: ["Hoodies", "Sweatshirts"]
+    subcategories: ["Hoodies", "Sweatshirts"],
   },
   {
+    section: "everyday",
     name: "Pants",
-    slug: "everyday-pants",
-    section: "everyday",
-    order: 3,
-    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a",
-    subcategories: ["Chinos", "Casual & Sweatpants"]
+    subcategories: ["Chinos", "Casual & Sweatpants"],
   },
   {
-    name: "Wallets & Bags",
-    slug: "wallets-and-bags",
     section: "everyday",
-    order: 4,
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62",
-    subcategories: ["Wallets", "Hand Bags"]
-  }
+    name: "Wallets & Bags",
+    subcategories: ["Wallets", "Hand Bags"],
+  },
 ];
 
-function createSlug(name) {
-  return name
+// Generate URL-friendly, unique slugs.
+// Include the section and parent path because category slugs
+// are unique across the entire Category collection.
+function makeSlug(value) {
+  return value
     .toLowerCase()
-    .replace(/&/g, "and")
+    .trim()
+    .replace(/&/g, " and ")
+    .replace(/%/g, " percent ")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+async function upsertCategory({
+  name,
+  section,
+  parentCategory,
+  slug,
+  order,
+}) {
+  const filter = {
+    name,
+    section,
+    parentCategory,
+  };
+
+  return Category.findOneAndUpdate(
+    filter,
+    {
+      $set: { slug, order },
+      $setOnInsert: {
+        name,
+        section,
+        parentCategory,
+      },
+    },
+    {
+      upsert: true,
+      new: true,
+      runValidators: true,
+      setDefaultsOnInsert: true,
+    }
+  );
 }
 
 async function seedCategories() {
   try {
     if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI is missing from your .env file");
+      throw new Error("MONGO_URI is missing from your .env file.");
     }
 
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("Connected to MongoDB");
+    console.log("Connected to MongoDB.");
 
     let parentCount = 0;
     let subcategoryCount = 0;
 
-    for (const item of categories) {
-      // Create or update the parent category.
-      const parent = await Category.findOneAndUpdate(
-        {
-          section: item.section,
-          slug: item.slug
-        },
-        {
-          $set: {
-            name: item.name,
-            section: item.section,
-            parentCategory: null,
-            order: item.order,
-            image: item.image
-          }
-        },
-        {
-          upsert: true,
-          new: true,
-          runValidators: true
-        }
-      );
+    for (let i = 0; i < categoryData.length; i++) {
+      const parent = categoryData[i];
+
+      // 1. Create or find the parent category
+      const parentCategory = await upsertCategory({
+        name: parent.name,
+        section: parent.section,
+        parentCategory: null,
+        slug: `${parent.section}-${makeSlug(parent.name)}`,
+        order: i + 1,
+      });
 
       parentCount++;
 
-      for (let i = 0; i < item.subcategories.length; i++) {
-        const subcategoryName = item.subcategories[i];
+      console.log(
+        `Parent category ready: ${parentCategory.name} (${parent.section})`
+      );
 
-        // Include the parent slug in the child slug to
-        // ensure slugs remain unique across the collection.
-        const subcategorySlug =
-          `${createSlug(subcategoryName)}-${item.slug}`;
+      // 2. Create or find its subcategories
+      for (let j = 0; j < parent.subcategories.length; j++) {
+        const subcategoryName = parent.subcategories[j];
 
-        await Category.findOneAndUpdate(
-          {
-            section: item.section,
-            slug: subcategorySlug
-          },
-          {
-            $set: {
-              name: subcategoryName,
-              slug: subcategorySlug,
-              section: item.section,
-              parentCategory: parent._id,
-              order: i + 1,
-              image: ""
-            }
-          },
-          {
-            upsert: true,
-            new: true,
-            runValidators: true
-          }
-        );
+        await upsertCategory({
+          name: subcategoryName,
+          section: parent.section,
+          parentCategory: parentCategory._id,
+          slug: `${parent.section}-${makeSlug(parent.name)}-${makeSlug(subcategoryName)}`,
+          order: j + 1,
+        });
 
         subcategoryCount++;
-      }
 
-      console.log(`Seeded: ${item.name}`);
+        console.log(`  Subcategory ready: ${subcategoryName}`);
+      }
     }
 
-    console.log("\nCategory seeding completed!");
-    console.log(`Parent categories: ${parentCount}`);
-    console.log(`Subcategories: ${subcategoryCount}`);
-    console.log(`Total categories: ${parentCount + subcategoryCount}`);
+    console.log("\nCategory seeding completed.");
+    console.log(`Parent categories processed: ${parentCount}`);
+    console.log(`Subcategories processed: ${subcategoryCount}`);
+    console.log(
+      `Total category records processed: ${parentCount + subcategoryCount}`
+    );
   } catch (error) {
-    console.error("Seeding failed:", error);
+    console.error("Category seeding failed:", error.message);
     process.exitCode = 1;
   } finally {
     await mongoose.disconnect();

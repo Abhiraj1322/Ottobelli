@@ -34,11 +34,10 @@ const sizeStockSchema = new mongoose.Schema(
 const productSchema = new mongoose.Schema(
   {
     // Excel product identity
-    itemNumber: {
-      type: Number,
-      unique: true,
-      sparse: true,
-    },
+itemNumber: {
+  type: Number,
+  default: null
+},
 
     sku: {
       type: String,
