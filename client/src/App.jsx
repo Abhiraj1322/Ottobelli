@@ -54,14 +54,14 @@ const{checkAuth}=useAuthStore()
   return (
  <BrowserRouter>
  <Routes>
-<Route path='/' element={<LandingPage/>}/>
+
 <Route path="/login" element={<LoginPage />} />
 <Route path="/register" element={<RegisterPage />} />
  <Route element={<NavbarLayout />}>
  
 <Route path='/everyday' element={<EverydayPage/>}/>
 <Route path='/classics' element={<ClassicsPage/>}/>
- 
+ <Route path='/' element={<LandingPage/>}/>
  <Route path="/cart" element={
           <ProtectedRoute><CartPage /></ProtectedRoute>
         } />

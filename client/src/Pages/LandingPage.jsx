@@ -4,7 +4,7 @@ export default function LandingPage() {
   
   const [categories, setCategories] = useState([]);
   const[everyday,seteveryday]=useState([])
-    const[bestseller,setbestseller]=useState([])
+const [bestSellers, setBestSellers] = useState([]);
 const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchCategories = async () => {
@@ -36,70 +36,21 @@ useEffect(() => {
     fetchCategories();
 
   }, []);
+
 useEffect(() => {
-    const fetchBestseller = async () => {
-      try {
-        const res = await api.get("/api/products/best-sellers");
-        setbestseller(res.data.categories);
-      } catch (err) {
-        console.error("Failed to fetch categories:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchBestseller();
+  const fetchBestSellers = async () => {
+    try {
+      const { data } = await api.get("api/products/best-sellers");
+      setBestSellers(data.bestSellers);
+    } catch (error) {
+      console.error("Error fetching best sellers:", error);
+    }
+  };
 
-  }, []);
-
-
+  fetchBestSellers();
+}, []);
   return (
     <div className="min-h-screen bg-white font-sans text-stone-900 antialiased">
-
-      {/* Announcement Bar */}
-      <div className="bg-stone-950 px-4 py-3 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-white sm:text-xs">
-        Made-to-measure classics · Fit Right Guarantee on every order
-      </div>
-
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-stone-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
-
-          <nav className="hidden items-center gap-7 md:flex">
-            <a href="#classics" className="text-[11px] uppercase tracking-[0.15em] hover:text-stone-500">
-              Classics
-            </a>
-            <a href="#everyday" className="text-[11px] uppercase tracking-[0.15em] hover:text-stone-500">
-              Everyday
-            </a>
-            <a href="#craftsmanship" className="text-[11px] uppercase tracking-[0.15em] hover:text-stone-500">
-              Our Craft
-            </a>
-          </nav>
-
-          <a href="#" className="font-serif text-2xl tracking-[0.25em] sm:text-3xl">
-            OTTOBELLI
-          </a>
-
-          <div className="flex items-center gap-4">
-            <a href="#fitting" className="hidden text-[11px] uppercase tracking-wider underline underline-offset-4 lg:block">
-              Book a fitting
-            </a>
-            <button aria-label="Search" className="p-2 hover:bg-stone-100">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="10.8" cy="10.8" r="6.8" />
-                <path d="m16 16 5 5" />
-              </svg>
-            </button>
-            <button aria-label="Shopping bag" className="p-2 hover:bg-stone-100">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M5 8h14l-1 13H6L5 8Z" />
-                <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main>
 
         {/* Hero */}
@@ -189,7 +140,7 @@ useEffect(() => {
   <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4">
     {categories.map((category, index) => (
       <a
-        href={`/collections/${category.slug}`}
+        href={`/classics/${category.slug}`}
         key={category._id}
         className="group"
       >
@@ -259,7 +210,7 @@ useEffect(() => {
     <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4">
       {everyday.map((category, index) => (
         <a
-          href={`/collections/${category.slug}`}
+          href={`/everyday/${category.slug}`}
           key={category._id}
           className="group"
         >
@@ -306,21 +257,65 @@ useEffect(() => {
   </div>
 </section>
         {/* Best Sellers */}
-        <section id="best-sellers" className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
-          <div className="mb-9">
-            <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
-              Customer favourites
+  <section
+  id="best-sellers"
+  className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
+>
+  <div className="mb-9">
+    <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
+      Customer favourites
+    </p>
+    <h2 className="font-serif text-3xl sm:text-4xl">
+      Best Sellers
+    </h2>
+  </div>
+
+  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+    {bestSellers.map((product) => (
+      <a
+        key={product._id}
+        href={`/products/${product.slug}`}
+        className="group"
+      >
+        <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
+          {product.images?.[0] && (
+            <img
+              src={product.images[0]}
+              alt={product.name}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          )}
+
+          {product.badge && (
+            <span className="absolute left-3 top-3 bg-white px-3 py-2 text-[10px] uppercase tracking-wider">
+              {product.badge}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-start justify-between gap-2 pt-4">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider sm:text-sm">
+              {product.name}
+            </h3>
+
+            <p className="mt-2 text-sm text-stone-600">
+              {new Intl.NumberFormat("en-CA", {
+                style: "currency",
+                currency: product.currency || "CAD",
+              }).format(product.price)}
             </p>
-            <h2 className="font-serif text-3xl sm:text-4xl">
-              Best sellers
-            </h2>
           </div>
 
-          {/* Render your product API data inside this grid */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {/* Product cards go here */}
-          </div>
-        </section>
+          <span className="shrink-0 transition-transform group-hover:translate-x-1">
+            →
+          </span>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>
 
         {/* Craftsmanship */}
         <section id="craftsmanship" className="bg-[#f3f3f0]">
@@ -393,61 +388,7 @@ useEffect(() => {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white">
-        <div className="mx-auto grid max-w-[1440px] gap-10 px-5 py-12 sm:px-8 md:grid-cols-2 lg:grid-cols-4 lg:px-12">
-          <div>
-            <a href="#" className="font-serif text-xl tracking-[0.24em]">
-              OTTOBELLI
-            </a>
-            <p className="mt-4 max-w-xs text-sm leading-6 text-stone-500">
-              Considered menswear. Made personal.
-            </p>
-          </div>
 
-          <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider">Shop</h3>
-            <div className="mt-4 space-y-3 text-sm text-stone-500">
-              <a href="#classics" className="block hover:text-stone-950">Classics</a>
-              <a href="#everyday" className="block hover:text-stone-950">Everyday</a>
-              <a href="#best-sellers" className="block hover:text-stone-950">Best sellers</a>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider">Customer care</h3>
-            <div className="mt-4 space-y-3 text-sm text-stone-500">
-              <a href="#craftsmanship" className="block hover:text-stone-950">Made to measure</a>
-              <a href="#fitting" className="block hover:text-stone-950">Book a fitting</a>
-              <a href="#fitting" className="block hover:text-stone-950">Fit Right Guarantee</a>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider">Stay in touch</h3>
-            <p className="mt-4 text-sm leading-6 text-stone-500">
-              Updates on new collections and considered essentials.
-            </p>
-            <form className="mt-4 flex border-b border-stone-300">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="min-w-0 flex-1 py-3 text-sm outline-none placeholder:text-stone-400"
-              />
-              <button type="button" className="px-2 text-xs font-semibold uppercase tracking-wider">
-                Join →
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <div className="border-t border-stone-200 px-5 py-5 text-[10px] uppercase tracking-wider text-stone-400 sm:px-8 lg:px-12">
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-2 md:flex-row md:justify-between">
-            <p>© Ottobelli. All rights reserved.</p>
-            <p>Crafted with care. Worn with confidence.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
