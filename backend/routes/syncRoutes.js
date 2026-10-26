@@ -334,37 +334,7 @@ if (
               images: cleanImages(row),
             };
 
-        let existing = null;
-
-// Use SKU as the unique identifier across all sheets.
-if (sku) {
-  existing = await Product.findOne({ sku });
-}
-
-if (existing) {
-  // Update the product with the matching SKU.
-  existing.set(productData);
-  await existing.save();
-
-  sheetResult.updated++;
-} else {
-  // Generate a unique, readable slug for a new product.
-  const baseSlug = makeSlug(name);
-
-  let slug = baseSlug;
-  const existingSlug = await Product.findOne({ slug });
-
-  if (existingSlug) {
-    slug = `${baseSlug}-${makeSlug(sku || itemNumber)}`;
-  }
-
-  await Product.create({
-    ...productData,
-    slug,
-  });
-
-  sheetResult.created++;
-}
+        
           } catch (error) {
             sheetResult.errors.push({
               row: rowNumber,
