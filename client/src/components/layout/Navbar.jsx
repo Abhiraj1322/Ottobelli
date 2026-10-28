@@ -67,6 +67,7 @@ export default function Navbar() {
 
           setProducts(productData);
         }
+
       } catch (err) {
         console.error("Failed to load navbar data:", err);
 
@@ -83,7 +84,7 @@ export default function Navbar() {
     }
 
     fetchMenuData();
-
+console.log(products)
     return () => {
       cancelled = true;
     };

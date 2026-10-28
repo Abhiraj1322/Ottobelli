@@ -9,20 +9,30 @@ const ClassicsPage = () => {
   const [hoveredId, setHoveredId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 // Fetch classics categories from backend
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        // Querying the classics split context from your controller endpoints
-        const res = await api.get("/api/categories?section=classics");
-        setCategories(res.data.categories);
-      } catch (err) {
-        console.error("Failed to fetch classics categories:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get("/api/categories", {
+        params: { section: "classics" },
+      });
+
+      const allCategories = res.data.categories || [];
+
+      // Keep only subcategories, such as Suits, Blazers and Tuxedos.
+      const subcategories = allCategories.filter(
+        (category) => category.parentCategory
+      );
+
+      setCategories(subcategories);
+    } catch (err) {
+      console.error("Failed to fetch classics categories:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchCategories();
+}, []);
   console.log(categories)
   return (
   <div

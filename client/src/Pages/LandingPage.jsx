@@ -1,58 +1,154 @@
-import { useState, useEffect } from "react";
-import api from '../api/axios';
+
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import api from "../api/axios";
+
 export default function LandingPage() {
-  
   const [categories, setCategories] = useState([]);
-  const[everyday,seteveryday]=useState([])
-const [bestSellers, setBestSellers] = useState([]);
-const [isLoading, setIsLoading] = useState(true);
+  const [everyday, setEveryday] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    const fetchCategories = async () => {
+    let cancelled = false;
+
+    async function fetchLandingPageData() {
+      setIsLoading(true);
+      setError("");
+
       try {
-        // Querying the classics split context from your controller endpoints
-        const res = await api.get("/api/categories?section=classics");
-        setCategories(res.data.categories);
+        const [classicsRes, everydayRes, bestSellersRes] =
+          await Promise.all([
+            api.get("/api/categories", {
+              params: { section: "classics" },
+            }),
+            api.get("/api/categories", {
+              params: { section: "everyday" },
+            }),
+            api.get("/api/products/best-sellers"),
+          ]);
+
+        const getCategories = (data) => {
+          if (Array.isArray(data)) return data;
+          return Array.isArray(data?.categories)
+            ? data.categories
+            : [];
+        };
+
+        // Convert parent categories and nested subcategories
+        // into a flat list of subcategory cards.
+        const getSubcategories = (responseData) => {
+          const parents = getCategories(responseData);
+
+          return parents
+            .filter((category) => !category.parentCategory)
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            .flatMap((category) =>
+              (category.subcategories || [])
+                .slice()
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map((subcategory) => ({
+                  ...subcategory,
+                  parentName: category.name,
+                  parentSlug: category.slug,
+                }))
+            );
+        };
+
+        if (!cancelled) {
+          setCategories(getSubcategories(classicsRes.data));
+          setEveryday(getSubcategories(everydayRes.data));
+
+          const products = bestSellersRes.data?.bestSellers;
+
+          setBestSellers(Array.isArray(products) ? products : []);
+        }
       } catch (err) {
-        console.error("Failed to fetch classics categories:", err);
+        console.error("Failed to load landing page:", err);
+
+        if (!cancelled) {
+          setError("Some collections could not be loaded. Please try again.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
-    };
-    fetchCategories();
-  }, []);
-
-
-useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await api.get("/api/categories?section=everyday");
-        seteveryday(res.data.categories);
-      } catch (err) {
-        console.error("Failed to fetch categories:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchCategories();
-
-  }, []);
-
-useEffect(() => {
-  const fetchBestSellers = async () => {
-    try {
-      const { data } = await api.get("api/products/best-sellers");
-      setBestSellers(data.bestSellers);
-    } catch (error) {
-      console.error("Error fetching best sellers:", error);
     }
+
+    fetchLandingPageData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const formatPrice = (price, currency = "CAD") =>
+    new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency,
+    }).format(Number(price) || 0);
+
+  // Reusable subcategory card
+  const renderCategoryCards = (items, section) => {
+    if (items.length === 0) {
+      return (
+        <p className="col-span-full py-10 text-sm text-stone-500">
+          No subcategories are available yet.
+        </p>
+      );
+    }
+
+    return items.map((subcategory, index) => (
+      <Link
+        to={`/${section}/${subcategory.slug}`}
+        key={subcategory._id}
+        className="group"
+      >
+        <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
+          {subcategory.image ? (
+            <img
+              src={subcategory.image}
+              alt={subcategory.name}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center p-4">
+              <span className="text-center text-xs uppercase tracking-widest text-stone-400">
+                {subcategory.name}
+              </span>
+            </div>
+          )}
+
+          <span className="absolute left-3 top-3 bg-white px-3 py-2 text-[10px]">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 pt-4">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider sm:text-sm">
+              {subcategory.name}
+            </h3>
+
+            <p className="mt-2 text-xs text-stone-500">
+              Shop {subcategory.parentName}
+            </p>
+          </div>
+
+          <span className="shrink-0 transition-transform group-hover:translate-x-1">
+            →
+          </span>
+        </div>
+      </Link>
+    ));
   };
 
-  fetchBestSellers();
-}, []);
   return (
     <div className="min-h-screen bg-white font-sans text-stone-900 antialiased">
       <main>
-
         {/* Hero */}
         <section className="relative isolate overflow-hidden bg-[#172131] text-white">
           <div className="absolute inset-0 -z-10">
@@ -61,6 +157,7 @@ useEffect(() => {
               alt=""
               className="h-full w-full object-cover opacity-30"
             />
+
             <div className="absolute inset-0 bg-gradient-to-r from-[#111923] via-[#172131]/90 to-transparent" />
           </div>
 
@@ -113,209 +210,139 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* Classics */}
-     <section
-  id="classics"
-  className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
->
-  <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
-    <div>
-      <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
-        A wardrobe, considered
-      </p>
+        {/* Classics subcategories */}
+        <section
+          id="classics"
+          className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
+        >
+          <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
+                A wardrobe, considered
+              </p>
 
-      <h2 className="font-serif text-3xl sm:text-4xl">
-        Shop the classics
-      </h2>
-    </div>
-
-    <a
-      href="#classics"
-      className="border-b border-stone-900 pb-2 text-[11px] uppercase tracking-wider"
-    >
-      View all collections →
-    </a>
-  </div>
-
-  <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4">
-    {categories.map((category, index) => (
-      <a
-        href={`/classics/${category.slug}`}
-        key={category._id}
-        className="group"
-      >
-        <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
-          {category.image ? (
-            <img
-              src={category.image}
-              alt={category.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <span className="text-xs uppercase tracking-widest text-stone-400">
-                {category.name}
-              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl">
+                Shop the classics
+              </h2>
             </div>
-          )}
 
-          <span className="absolute left-3 top-3 bg-white px-3 py-2 text-[10px]">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-3 pt-4">
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider sm:text-sm">
-              {category.name}
-            </h3>
-
-            <p className="mt-2 text-xs text-stone-500">
-              {category.subcategories?.map((sub) => sub.name).join(" · ") ||
-                "Explore the collection"}
-            </p>
+            <Link
+              to="/classics"
+              className="border-b border-stone-900 pb-2 text-[11px] uppercase tracking-wider"
+            >
+              View all collections →
+            </Link>
           </div>
 
-          <span className="shrink-0 transition-transform group-hover:translate-x-1">
-            →
-          </span>
-        </div>
-      </a>
-    ))}
-  </div>
-</section>
+          {isLoading ? (
+            <p className="py-10 text-sm text-stone-500">
+              Loading Classics...
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4">
+              {renderCategoryCards(categories, "classics")}
+            </div>
+          )}
+        </section>
 
-      {/* Everyday */}
-<section id="everyday" className="bg-[#f6f5f2]">
-  <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
-    <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
-          Off-duty, elevated
-        </p>
+        {/* Everyday subcategories */}
+        <section id="everyday" className="bg-[#f6f5f2]">
+          <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
+            <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
+                  Off-duty, elevated
+                </p>
 
-        <h2 className="font-serif text-3xl sm:text-4xl">
-          Everyday essentials
-        </h2>
-      </div>
+                <h2 className="font-serif text-3xl sm:text-4xl">
+                  Everyday essentials
+                </h2>
+              </div>
 
-      <a
-        href="#everyday"
-        className="border-b border-stone-900 pb-2 text-[11px] uppercase tracking-wider"
-      >
-        Explore everyday →
-      </a>
-    </div>
+              <Link
+                to="/everyday"
+                className="border-b border-stone-900 pb-2 text-[11px] uppercase tracking-wider"
+              >
+                Explore everyday →
+              </Link>
+            </div>
 
-    <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4">
-      {everyday.map((category, index) => (
-        <a
-          href={`/everyday/${category.slug}`}
-          key={category._id}
-          className="group"
-        >
-          <div className="relative aspect-[4/5] overflow-hidden bg-stone-200">
-            {category.image ? (
-              <img
-                src={category.image}
-                alt={category.name}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+            {isLoading ? (
+              <p className="py-10 text-sm text-stone-500">
+                Loading Everyday...
+              </p>
             ) : (
-              <div className="flex h-full items-center justify-center p-4">
-                <span className="text-center text-xs uppercase tracking-widest text-stone-400">
-                  {category.name}
-                </span>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4">
+                {renderCategoryCards(everyday, "everyday")}
               </div>
             )}
-
-            <span className="absolute left-3 top-3 bg-white px-3 py-2 text-[10px]">
-              {String(index + 1).padStart(2, "0")}
-            </span>
           </div>
+        </section>
 
-          <div className="flex items-center justify-between gap-3 pt-4">
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider sm:text-sm">
-                {category.name}
-              </h3>
-
-              <p className="mt-2 text-xs text-stone-500">
-                {category.subcategories?.map((sub) => sub.name).join(" · ") ||
-                  "Explore the collection"}
-              </p>
-            </div>
-
-            <span className="shrink-0 transition-transform group-hover:translate-x-1">
-              →
-            </span>
-          </div>
-        </a>
-      ))}
-    </div>
-  </div>
-</section>
         {/* Best Sellers */}
-  <section
-  id="best-sellers"
-  className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
->
-  <div className="mb-9">
-    <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
-      Customer favourites
-    </p>
-    <h2 className="font-serif text-3xl sm:text-4xl">
-      Best Sellers
-    </h2>
-  </div>
-
-  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-    {bestSellers.map((product) => (
-      <a
-        key={product._id}
-        href={`/products/${product.slug}`}
-        className="group"
-      >
-        <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
-          {product.images?.[0] && (
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          )}
-
-          {product.badge && (
-            <span className="absolute left-3 top-3 bg-white px-3 py-2 text-[10px] uppercase tracking-wider">
-              {product.badge}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-start justify-between gap-2 pt-4">
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider sm:text-sm">
-              {product.name}
-            </h3>
-
-            <p className="mt-2 text-sm text-stone-600">
-              {new Intl.NumberFormat("en-CA", {
-                style: "currency",
-                currency: product.currency || "CAD",
-              }).format(product.price)}
+        <section
+          id="best-sellers"
+          className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
+        >
+          <div className="mb-9">
+            <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
+              Customer favourites
             </p>
+
+            <h2 className="font-serif text-3xl sm:text-4xl">
+              Best Sellers
+            </h2>
           </div>
 
-          <span className="shrink-0 transition-transform group-hover:translate-x-1">
-            →
-          </span>
-        </div>
-      </a>
-    ))}
-  </div>
-</section>
+          {bestSellers.length === 0 ? (
+            <p className="py-8 text-sm text-stone-500">
+              No best sellers are available right now.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {bestSellers.map((product) => (
+                <Link
+                  key={product._id}
+                  to={`/products/${product.slug}`}
+                  className="group"
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                    {product.images?.[0] && (
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    )}
+
+                    {product.badge && (
+                      <span className="absolute left-3 top-3 bg-white px-3 py-2 text-[10px] uppercase tracking-wider">
+                        {product.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-start justify-between gap-2 pt-4">
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider sm:text-sm">
+                        {product.name}
+                      </h3>
+
+                      <p className="mt-2 text-sm text-stone-600">
+                        {formatPrice(product.price, product.currency || "CAD")}
+                      </p>
+                    </div>
+
+                    <span className="shrink-0 transition-transform group-hover:translate-x-1">
+                      →
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Craftsmanship */}
         <section id="craftsmanship" className="bg-[#f3f3f0]">
@@ -324,6 +351,7 @@ useEffect(() => {
               <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
                 A better fit starts here
               </p>
+
               <h2 className="font-serif text-3xl leading-tight sm:text-4xl">
                 Made to measure in three simple steps
               </h2>
@@ -370,25 +398,25 @@ useEffect(() => {
               <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-300">
                 Personal service, considered details
               </p>
+
               <h2 className="max-w-2xl font-serif text-3xl leading-tight sm:text-4xl">
                 Your wardrobe should fit your life — and you.
               </h2>
+
               <p className="mt-4 max-w-xl text-sm leading-7 text-stone-300">
                 Find your fit, discover your fabrics and make every detail personal.
               </p>
             </div>
 
-            <a
-              href="#"
+            <Link
+              to="/book-fitting"
               className="inline-flex min-h-12 items-center justify-center bg-white px-7 text-[11px] font-semibold uppercase tracking-[0.15em] text-stone-950 transition hover:bg-stone-200"
             >
               Book a fitting <span className="ml-4">→</span>
-            </a>
+            </Link>
           </div>
         </section>
       </main>
-
-
     </div>
   );
 }
