@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import api from '../api/axios';
@@ -9,6 +9,10 @@ const ClassicsPage = () => {
   const [hoveredId, setHoveredId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 // Fetch classics categories from backend
+;
+
+const { slug } = useParams();
+console.log(slug);
 useEffect(() => {
   const fetchCategories = async () => {
     try {

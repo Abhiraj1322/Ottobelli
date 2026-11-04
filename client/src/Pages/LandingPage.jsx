@@ -59,7 +59,7 @@ export default function LandingPage() {
         if (!cancelled) {
           setCategories(getSubcategories(classicsRes.data));
           setEveryday(getSubcategories(everydayRes.data));
-
+ 
           const products = bestSellersRes.data?.bestSellers;
 
           setBestSellers(Array.isArray(products) ? products : []);
@@ -99,113 +99,116 @@ export default function LandingPage() {
         </p>
       );
     }
-
-    return items.map((subcategory, index) => (
-      <Link
-        to={`/${section}/${subcategory.slug}`}
-        key={subcategory._id}
-        className="group"
-      >
-        <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
-          {subcategory.image ? (
-            <img
-              src={subcategory.image}
-              alt={subcategory.name}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center p-4">
-              <span className="text-center text-xs uppercase tracking-widest text-stone-400">
-                {subcategory.name}
-              </span>
-            </div>
-          )}
-
-          <span className="absolute left-3 top-3 bg-white px-3 py-2 text-[10px]">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-3 pt-4">
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider sm:text-sm">
+  return items.map((subcategory, index) => (
+    <Link
+      to={`/${section}/${subcategory.slug}`}
+      key={subcategory._id || subcategory.slug}
+      className="group flex flex-col justify-between"
+    >
+      {/* Product Image Container */}
+      <div className="relative aspect-[4/5] overflow-hidden bg-[#F2F1EE] p-6 flex items-center justify-center mb-3">
+        {subcategory.image ? (
+          <img
+            src={subcategory.image}
+            alt={subcategory.name}
+            loading="lazy"
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-sm"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center p-4">
+            <span className="text-center text-xs uppercase tracking-widest text-stone-400">
               {subcategory.name}
-            </h3>
-
-            <p className="mt-2 text-xs text-stone-500">
-              Shop {subcategory.parentName}
-            </p>
+            </span>
           </div>
+        )}
 
-          <span className="shrink-0 transition-transform group-hover:translate-x-1">
-            →
-          </span>
+        {/* Number Badge */}
+        <span className="absolute left-3 top-3 bg-white px-2.5 py-1 text-[9px] font-bold tracking-widest uppercase shadow-sm">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      </div>
+
+      {/* Card Footer Details */}
+      <div className="flex items-center justify-between gap-3 pt-1">
+        <div>
+          <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-gray-950 sm:text-sm">
+            {subcategory.name}
+          </h3>
+          <p className="mt-1 text-[10px] text-gray-500 uppercase tracking-wider">
+            {subcategory.parentName || section}
+          </p>
         </div>
-      </Link>
-    ));
+
+        <span className="text-[10px] font-medium tracking-wider text-gray-500 group-hover:text-black transition-colors flex items-center gap-1">
+          Shop now <span className="transition-transform group-hover:translate-x-1">→</span>
+        </span>
+      </div>
+    </Link>
+  ));
+
+
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-stone-900 antialiased">
+   <div className="min-h-screen bg-white font-sans text-stone-900 antialiased pt-[46px]">
       <main>
-        {/* Hero */}
-        <section className="relative isolate overflow-hidden bg-[#172131] text-white">
-          <div className="absolute inset-0 -z-10">
-            <img
-              src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=2000&q=90"
-              alt=""
-              className="h-full w-full object-cover opacity-30"
-            />
+        
+        {/* ── Updated Classics Hero Section ── */}
+        <section className="relative bg-[#1B2230] text-white py-16 sm:py-24 overflow-hidden">
+          {/* Micro-dot grid background pattern overlay */}
+          <div 
+            className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{
+              backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px)`,
+              backgroundSize: '8px 8px',
+            }}
+          />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-[#111923] via-[#172131]/90 to-transparent" />
-          </div>
+          <div className="relative z-10 mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              
+              {/* Hero Text Content (Left Column) */}
+              <div className="lg:col-span-6 flex flex-col items-start">
+                <span className="text-[10px] font-bold tracking-[0.25em] text-white/60 uppercase mb-4">
+                  CLASSICS COLLECTION
+                </span>
 
-          <div className="mx-auto grid min-h-[600px] max-w-[1440px] items-center gap-12 px-5 py-16 sm:px-8 md:grid-cols-2 lg:px-12">
-            <div className="max-w-xl">
-              <p className="mb-5 text-xs uppercase tracking-[0.25em] text-stone-300">
-                The Classics Collection
-              </p>
+                <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] mb-6 text-white">
+                  Tailored to you, down to the stitch.
+                </h1>
 
-              <h1 className="font-serif text-5xl leading-[1.08] sm:text-6xl lg:text-7xl">
-                Tailored to you,
-                <br />
-                down to the stitch.
-              </h1>
+                <p className="text-xs sm:text-sm text-white/70 max-w-md leading-relaxed mb-8">
+                  Choose the fabric, the lapel, the lining and the fit. We make your suit to your measurements and stand behind the fit.
+                </p>
 
-              <p className="mt-6 max-w-lg text-base leading-7 text-stone-300 sm:text-lg">
-                Discover considered menswear crafted around your style,
-                your measurements and your life.
-              </p>
-
-              <div className="mt-9 flex flex-wrap gap-3">
-                <a
-                  href="#classics"
-                  className="inline-flex min-h-12 items-center bg-white px-7 text-[11px] font-semibold uppercase tracking-[0.15em] text-stone-950 transition hover:bg-stone-200"
-                >
-                  Explore classics <span className="ml-4">→</span>
-                </a>
-
-                <a
-                  href="#fitting"
-                  className="inline-flex min-h-12 items-center border border-white/70 px-7 text-[11px] font-semibold uppercase tracking-[0.15em] transition hover:bg-white hover:text-stone-950"
-                >
-                  Book a fitting
-                </a>
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-4">
+                  <Link
+                    to="/classics/suits"
+                    className="inline-flex min-h-12 items-center justify-center bg-white px-7 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-950 transition hover:bg-stone-200 shadow-sm"
+                  >
+                    CUSTOMIZE A SUIT
+                  </Link>
+                  <Link
+                    to="/classics"
+                    className="inline-flex min-h-12 items-center justify-center border border-white/40 px-7 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition hover:border-white hover:bg-white/10"
+                  >
+                    SHOP CLASSICS
+                  </Link>
+                </div>
               </div>
 
-              <div className="mt-12 flex items-center gap-3 text-xs text-stone-300">
-                <span className="h-px w-10 bg-stone-400" />
-                Thoughtfully made. Made to last.
+              {/* Hero Suit & Trouser Artwork Render (Right Column) */}
+              <div className="lg:col-span-6 flex items-center justify-center lg:justify-end">
+                <div className="relative w-full max-w-lg aspect-[4/3] flex items-center justify-center p-4">
+                  <img
+                    src="https://ottobelli.com/cdn/shop/products/ottobelli-classics-hero-icon_800x.png"
+                    alt="Tailored Classics Suit and Trousers"
+                    className="w-full h-full object-contain drop-shadow-2xl"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="relative hidden h-[500px] md:block">
-              <img
-                src="https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=900&q=90"
-                alt="Tailored menswear"
-                className="absolute right-0 top-0 h-full w-[80%] object-cover object-top"
-              />
             </div>
           </div>
         </section>
@@ -245,39 +248,100 @@ export default function LandingPage() {
           )}
         </section>
 
-        {/* Everyday subcategories */}
-        <section id="everyday" className="bg-[#f6f5f2]">
-          <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
-            <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="mb-3 text-xs uppercase tracking-[0.2em] text-stone-500">
-                  Off-duty, elevated
-                </p>
+      {/* Everyday subcategories section */}
+<section id="everyday" className="bg-white py-12 sm:py-16">
+  <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      
+      {/* Left Featured Hero Tile (5 columns on large screens) */}
+      <div 
+        className="lg:col-span-5 relative bg-[#5E6551] min-h-[480px] sm:min-h-[560px] p-8 sm:p-12 flex flex-col justify-between overflow-hidden"
+        style={{
+          backgroundImage: `radial-gradient(rgba(0, 0, 0, 0.15) 1px, transparent 0)`,
+          backgroundSize: '12px 12px',
+        }}
+      >
+        {/* Large Centered Product Artwork (Hoodie) */}
+        <div className="absolute inset-0 flex items-center justify-center p-8 sm:p-12 pointer-events-none">
+          <img
+            src="https://ottobelli.com/cdn/shop/products/ottobelli-everyday-hoodie-icon_500x.png" // Replace with your backend hoodie image URL
+            alt="Everyday Wear Hoodie"
+            className="w-4/5 max-h-[75%] object-contain drop-shadow-xl"
+          />
+        </div>
 
-                <h2 className="font-serif text-3xl sm:text-4xl">
-                  Everyday essentials
-                </h2>
-              </div>
+        {/* Content Overlays */}
+        <div className="relative z-10">
+          <span className="text-[10px] font-bold tracking-[0.25em] text-white/70 uppercase">
+            READY TO WEAR
+          </span>
+        </div>
 
-              <Link
-                to="/everyday"
-                className="border-b border-stone-900 pb-2 text-[11px] uppercase tracking-wider"
-              >
-                Explore everyday →
-              </Link>
-            </div>
+        <div className="relative z-10 pt-32">
+          <h2 className="font-serif text-3xl sm:text-4xl text-white font-medium mb-6 leading-tight">
+            Everyday Wear
+          </h2>
+          <Link
+            to="/everyday"
+            className="inline-flex items-center justify-center bg-white text-gray-950 px-6 py-3.5 text-[10px] font-bold uppercase tracking-[0.2em] transition hover:bg-stone-200 shadow-sm"
+          >
+            SHOP EVERYDAY
+          </Link>
+        </div>
+      </div>
 
-            {isLoading ? (
-              <p className="py-10 text-sm text-stone-500">
-                Loading Everyday...
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4">
-                {renderCategoryCards(everyday, "everyday")}
-              </div>
-            )}
+      {/* Right 2x2 Subcategory Cards Grid (7 columns on large screens) */}
+      <div className="lg:col-span-7">
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-4 h-full min-h-[480px]">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="bg-stone-100 animate-pulse aspect-[4/4.5]" />
+            ))}
           </div>
-        </section>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:gap-6">
+            {everyday?.slice(0, 4).map((categoryItem) => {
+              // Extract first subcategory or product image for the card
+              const imageSrc =
+                categoryItem.image ||
+                categoryItem.subcategories?.[0]?.image ||
+                categoryItem.products?.[0]?.images?.[0] ||
+                "https://ottobelli.com/cdn/shop/products/ottobelli-placeholder_500x.png";
+
+              return (
+                <Link
+                  key={categoryItem._id || categoryItem.slug}
+                  to={`/everyday/${categoryItem.slug}`}
+                  className="group flex flex-col justify-between"
+                >
+                  {/* Card Image Container */}
+                  <div className="relative aspect-[4/4.5] bg-[#F2F1EE] p-6 sm:p-8 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={imageSrc}
+                      alt={categoryItem.name}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+
+                  {/* Card Title & Link Footer */}
+                  <div className="flex items-center justify-between pt-3 pb-1 border-b border-transparent group-hover:border-stone-900 transition-colors">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-gray-950">
+                      {categoryItem.name}
+                    </span>
+                    <span className="text-[10px] text-gray-500 tracking-wider group-hover:text-black transition-colors">
+                      Shop now
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+    </div>
+  </div>
+</section>
 
         {/* Best Sellers */}
         <section
