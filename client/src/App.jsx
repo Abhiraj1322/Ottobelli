@@ -97,7 +97,7 @@ const{checkAuth}=useAuthStore()
         <Route path="/account" element={
           <ProtectedRoute><AccountPage /></ProtectedRoute>
         } />
-
+         
 
  {/* ── Category + Product Routes ── */}
         <Route path="/classics/:categorySlug" element={<CategoryListingPage section="classics" />} />

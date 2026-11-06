@@ -71,21 +71,75 @@ const getProductBySlug = async (req, res) => {
 // Example: /api/products/64abc123/related
 const getRelatedProducts = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate(
-      "relatedProducts",
-      "name slug price images badge"
-    );
- 
+    const { id } = req.params;
+
+    // Find the main product
+    const product = await Product.findById(id);
+
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({
+        message: "Product not found",
+      });
     }
- 
-    res.status(200).json({ relatedProducts: product.relatedProducts });
+
+    const selectFields = "name slug price salePrice images badge";
+
+    // First priority: Same subcategory
+    let relatedProducts = await Product.find({
+      _id: { $ne: product._id },
+      subcategory: product.subcategory,
+      status: "Active",
+    })
+      .select(selectFields)
+      .limit(4);
+
+    // Second priority: Same category
+    if (relatedProducts.length < 4) {
+      const existingIds = [
+        product._id,
+        ...relatedProducts.map((item) => item._id),
+      ];
+
+      const moreProducts = await Product.find({
+        _id: { $nin: existingIds },
+        category: product.category,
+        status: "Active",
+      })
+        .select(selectFields)
+        .limit(4 - relatedProducts.length);
+
+      relatedProducts.push(...moreProducts);
+    }
+
+    // Third priority: Same section
+    if (relatedProducts.length < 4) {
+      const existingIds = [
+        product._id,
+        ...relatedProducts.map((item) => item._id),
+      ];
+
+      const moreProducts = await Product.find({
+        _id: { $nin: existingIds },
+        section: product.section,
+        status: "Active",
+      })
+        .select(selectFields)
+        .limit(4 - relatedProducts.length);
+
+      relatedProducts.push(...moreProducts);
+    }
+
+    return res.status(200).json({
+      success: true,
+      relatedProducts,
+    });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    return res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
 };
-
 
 const getBestSellers = async (req, res) => {
   try {

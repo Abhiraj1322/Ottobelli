@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
-
+import AccountBar from "../account/AccountSidebar";
 const CUSTOM_SUBCATEGORIES = new Set([
   "Suits",
   "Blazers",
@@ -18,7 +18,7 @@ export default function Navbar() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
+const [showAccount, setShowAccount] = useState(false);
   useEffect(() => {
     if (!activeMenu) return;
 
@@ -179,23 +179,26 @@ console.log(products)
             </svg>
           </Link>
 
-          <Link
-            to="/account"
-            onMouseEnter={closeMenu}
-            aria-label="Account"
-            className="hidden p-1 transition hover:text-stone-500 sm:block"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <circle cx="12" cy="7" r="4" />
-              <path d="M4 21a8 8 0 0 1 16 0" />
-            </svg>
-          </Link>
+        <button
+  type="button"
+  onClick={() => {
+    closeMenu();
+    setShowAccount(true);
+  }}
+  aria-label="Account"
+  className="hidden p-1 transition hover:text-stone-500 sm:block"
+>
+  <svg
+    viewBox="0 0 24 24"
+    className="h-6 w-6"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <circle cx="12" cy="7" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </svg>
+</button>
 
           <Link
             to="/cart"
@@ -369,6 +372,35 @@ console.log(products)
           </div>
         </div>
       )}
+      <AccountBar
+  isOpen={showAccount}
+  onClose={() => setShowAccount(false)}
+  user={null}
+onGoogleSuccess={async (response) => {
+  try {
+    const result = await api.post("/auth/google", {
+      credential: response.credential,
+    });
+
+    console.log("Backend response:", result.data);
+
+    // Update the user state
+    setUser(result.data.user);
+
+    // Store your Ottobelli JWT
+    localStorage.setItem("token", result.data.token);
+
+  } catch (error) {
+    console.error(
+      "Google authentication error:",
+      error.response?.data || error.message
+    );
+  }
+}}
+  onLogout={() => {}}
+/>
     </header>
   );
+
+  
 }
