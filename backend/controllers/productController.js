@@ -9,42 +9,106 @@ const Category = require("../models/Category");
 // @query sort=price_asc|price_desc|top_rated|material
 // @query page=1&limit=12
 // Example: /api/products?section=classics&sort=price_asc&page=1&limit=12
+const escapeRegex = (value) => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
+
 const getProducts = async (req, res) => {
   try {
-    const { section, category, subcategory, sort, page = 1, limit = 12 } = req.query;
- 
+    const {
+      section,
+      category,
+      subcategory,
+      sort,
+      search,
+      page = 1,
+      limit = 12,
+    } = req.query;
+
+    // 1. Build the normal product filters
     const filter = {};
+
     if (section) filter.section = section;
     if (category) filter.category = category;
     if (subcategory) filter.subcategory = subcategory;
- 
-    // Sort options
-    let sortOption = { priority: -1 }; // default: backend priority order
+
+    // 2. Add search conditions only when a search term exists
+    const searchTerm =
+      typeof search === "string" ? search.trim() : "";
+
+    if (searchTerm) {
+      const safeSearch = escapeRegex(searchTerm);
+
+      const searchConditions = [
+        { name: { $regex: safeSearch, $options: "i" } },
+        { sku: { $regex: safeSearch, $options: "i" } },
+        { colour: { $regex: safeSearch, $options: "i" } },
+        { pattern: { $regex: safeSearch, $options: "i" } },
+        { materials: { $regex: safeSearch, $options: "i" } },
+        { description: { $regex: safeSearch, $options: "i" } },
+        { mill: { $regex: safeSearch, $options: "i" } },
+        { superCount: { $regex: safeSearch, $options: "i" } },
+        { slug: { $regex: safeSearch, $options: "i" } },
+      ];
+
+      // Also search itemNumber when the input is numeric
+      if (/^\d+$/.test(searchTerm)) {
+        searchConditions.push({
+          itemNumber: Number(searchTerm),
+        });
+      }
+
+      filter.status = "Active";
+      filter.$or = searchConditions;
+    }
+
+    // 3. Existing sorting options
+    let sortOption = { priority: -1 };
+
     if (sort === "price_asc") sortOption = { price: 1 };
     if (sort === "price_desc") sortOption = { price: -1 };
     if (sort === "top_rated") sortOption = { rating: -1 };
-    if (sort === "material") sortOption = { materials: 1 }; // alphabetical by first material
- 
-    const skip = (Number(page) - 1) * Number(limit);
+    if (sort === "material") sortOption = { materials: 1 };
+
+    // 4. Validate pagination values
+    const currentPage = Math.max(1, Number(page) || 1);
+    const pageLimit = Math.min(
+      100,
+      Math.max(1, Number(limit) || 12)
+    );
+
+    const skip = (currentPage - 1) * pageLimit;
+
+    // 5. Count all matching products
     const total = await Product.countDocuments(filter);
- 
+
+    // 6. Retrieve products for the current page
     const products = await Product.find(filter)
       .sort(sortOption)
       .skip(skip)
-      .limit(Number(limit))
+      .limit(pageLimit)
       .populate("category", "name slug")
       .populate("subcategory", "name slug");
- 
+
+    // 7. Return results to frontend
     res.status(200).json({
       products,
       total,
-      page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+      page: currentPage,
+      pages: Math.ceil(total / pageLimit),
     });
+
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("Get products error:", err);
+
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
 };
+
  
 // @route GET /api/products/:slug
 // @desc  Get a single product by slug, with related products

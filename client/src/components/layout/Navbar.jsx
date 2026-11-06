@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import AccountBar from "../account/AccountSidebar";
+import SearchOverlay from "./SearchOverlay";
 const CUSTOM_SUBCATEGORIES = new Set([
   "Suits",
   "Blazers",
@@ -19,6 +20,8 @@ export default function Navbar() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 const [showAccount, setShowAccount] = useState(false);
+const [user, setUser] = useState(null);
+const [showSearch, setShowSearch] = useState(false);
   useEffect(() => {
     if (!activeMenu) return;
 
@@ -41,6 +44,7 @@ const [showAccount, setShowAccount] = useState(false);
             },
           }),
         ]);
+
 
         const categoryData = Array.isArray(categoryRes.data)
           ? categoryRes.data
@@ -96,7 +100,16 @@ console.log(products)
     activeMenu === "classics" ? "Classics" : "Everyday";
 
   const promoProduct = products[0];
+const handleLogout = () => {
+  // Remove the JWT from browser storage
+  localStorage.removeItem("token");
 
+  // Clear the logged-in customer
+  setUser(null);
+
+  // Close the account sidebar
+  setShowAccount(false);
+};
   return (
     <header
       className="relative z-50 border-b border-stone-200 bg-white"
@@ -161,23 +174,24 @@ console.log(products)
             Book a Fitting
           </Link>
 
-          <Link
-            to="/search"
-            onMouseEnter={closeMenu}
-            aria-label="Search"
-            className="p-1 transition hover:text-stone-500"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <circle cx="10.8" cy="10.8" r="6.8" />
-              <path d="m16 16 5 5" />
-            </svg>
-          </Link>
+       <button
+  type="button"
+  onClick={() => setShowSearch(true)}
+  onMouseEnter={closeMenu}
+  aria-label="Search"
+  className="p-1 transition hover:text-stone-500"
+>
+  <svg
+    viewBox="0 0 24 24"
+    className="h-6 w-6"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <circle cx="10.8" cy="10.8" r="6.8" />
+    <path d="m16 16 5 5" />
+  </svg>
+</button>
 
         <button
   type="button"
@@ -188,6 +202,14 @@ console.log(products)
   aria-label="Account"
   className="hidden p-1 transition hover:text-stone-500 sm:block"
 >
+
+<SearchOverlay
+  isOpen={showSearch}
+  onClose={() => setShowSearch(false)}
+/>
+
+
+
   <svg
     viewBox="0 0 24 24"
     className="h-6 w-6"
@@ -263,7 +285,7 @@ console.log(products)
                           .map((subcategory) => (
                             <Link
                               key={subcategory._id}
-                              to={`/${activeMenu}/${category.slug}/${subcategory.slug}`}
+                              to={`/${activeMenu}/${subcategory.slug}`}
                               onClick={closeMenu}
                               className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-5 text-stone-700 transition hover:text-black"
                             >
@@ -375,10 +397,10 @@ console.log(products)
       <AccountBar
   isOpen={showAccount}
   onClose={() => setShowAccount(false)}
-  user={null}
+  user={user}
 onGoogleSuccess={async (response) => {
   try {
-    const result = await api.post("/auth/google", {
+    const result = await api.post("/api/auth/google", {
       credential: response.credential,
     });
 
@@ -397,7 +419,7 @@ onGoogleSuccess={async (response) => {
     );
   }
 }}
-  onLogout={() => {}}
+  onLogout={handleLogout}
 />
     </header>
   );
