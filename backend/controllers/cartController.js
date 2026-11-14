@@ -35,59 +35,76 @@ const getCart = async (req, res) => {
 // Body: { productId, profileId, customizationSelectionId (optional), quantity }
 const addToCart = async (req, res) => {
   try {
-    const { productId, profileId, customizationSelectionId, quantity = 1,additionalFee } = req.body;
+    const {
+      productId,
+      profileId,
+      customizationSelectionId,
+      quantity = 1,
+      additionalFee = 0,
+    } = req.body;
 
     if (!productId) {
-      return res.status(400).json({ message: "productId and profileId are required" });
-    }
-
-    // Get product to check if it exists and get its price
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    // If product is customizable, customizationSelectionId is required
-    if (product.isCustomizable && !customizationSelectionId) {
       return res.status(400).json({
-        message: "Customization selections are required for this product",
+        message: "Product ID is required",
       });
     }
 
-    // Find or create cart for this user
-    let cart = await Cart.findOne({ userId: req.user._id });
-    if (!cart) {
-      cart = await Cart.create({ userId: req.user._id, items: [] });
+    // Find product
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found",
+      });
     }
 
-    // Check if same product + same profile already in cart
-    const existingItemIndex = cart.items.findIndex(
-      (item) =>
+    // Find or create cart
+    let cart = await Cart.findOne({ userId: req.user._id });
+
+    if (!cart) {
+      cart = await Cart.create({
+        userId: req.user._id,
+        items: [],
+      });
+    }
+
+    // Check whether the same product, profile and customization
+    // already exists in the cart.
+    const existingItemIndex = cart.items.findIndex((item) => {
+      return (
         item.productId.toString() === productId &&
-        item.profileId.toString() === profileId &&
-        String(item.customizationSelectionId) === String(customizationSelectionId)
-    );
+        String(item.profileId || "") === String(profileId || "") &&
+        String(item.customizationSelectionId || "") ===
+          String(customizationSelectionId || "")
+      );
+    });
 
     if (existingItemIndex >= 0) {
-      // Item already exists — just update quantity
-      cart.items[existingItemIndex].quantity += quantity;
+      cart.items[existingItemIndex].quantity += Number(quantity);
     } else {
-      // Add new item to cart
       cart.items.push({
         productId,
-        profileId,
+        profileId: profileId || null,
         customizationSelectionId: customizationSelectionId || null,
-        quantity,
+        quantity: Number(quantity),
         priceAtAdd: product.price,
-        additionalFee: Number(additionalFee) || 0, // snapshot price at time of adding
+        additionalFee: Number(additionalFee) || 0,
       });
     }
 
     await cart.save();
 
-    res.status(200).json({ message: "Item added to cart", cart });
+    res.status(200).json({
+      message: "Item added to cart",
+      cart,
+    });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("Add to cart error:", err);
+
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
 };
 

@@ -9,8 +9,7 @@ const {
 } = require("../controllers/cartController");
 const { protect } = require("../middleware/authMiddleware");
  
-// All cart routes are protected
-router.use(protect);
+
  
 router.get("/", getCart);                      // GET    /api/cart
 router.post("/", addToCart);                   // POST   /api/cart
