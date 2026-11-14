@@ -57,6 +57,8 @@ const addToCart = async (req, res) => {
         message: "Product not found",
       });
     }
+    // Check authenticated user
+console.log("req.user:", req.user);
 
     // Find or create cart
     let cart = await Cart.findOne({ userId: req.user._id });

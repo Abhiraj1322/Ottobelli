@@ -8,8 +8,8 @@ const {
   clearCart,
 } = require("../controllers/cartController");
 const { protect } = require("../middleware/authMiddleware");
- 
-
+ // Protect all cart routes
+router.use(protect);
  
 router.get("/", getCart);                      // GET    /api/cart
 router.post("/", addToCart);                   // POST   /api/cart
