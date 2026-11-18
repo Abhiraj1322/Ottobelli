@@ -119,7 +119,7 @@ const SearchOverlay = ({ isOpen, onClose }) => {
             {products.map((product) => (
               <Link
                 key={product._id}
-                to={`/product/${product.slug}`}
+                to={`/products/${product.slug}`}
                 onClick={onClose}
                 className="group"
               >

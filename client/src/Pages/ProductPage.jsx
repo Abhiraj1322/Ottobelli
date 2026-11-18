@@ -9,7 +9,7 @@ import useFavoritesStore from "../store/favoritesStore";
 import CustomizationModal from "../components/modals/CustomizationModal";
 import ProfileSelectorModal from "../components/modals/ProfileSelectorModal";
 
-const ProductPage = () => {
+const ProductPage = ({onOpenCart,onOpenAccount}) => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -18,9 +18,9 @@ const ProductPage = () => {
   const categorySlug = searchParams.get("category") || "";
 
   // Zustand stores
-  const { isLoggedIn } = useAuthStore();
+  const { user,isLoggedIn } = useAuthStore();
   const { addToCart } = useCartStore();
-  const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+  const { addFavorite, removeFavorite, isFavorite, } = useFavoritesStore();
 
   // State
   const [product, setProduct] = useState(null);
@@ -87,36 +87,33 @@ useEffect(() => {
     setAccordionState((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Handle add to cart
-  const handleAddToCart = async (itemToAdd = product) => {
-    if (!isLoggedIn) {
-      navigate("/login");
-      return;
-    }
+    // Handle add to cart
+const handleAddToCart = async (itemToAdd = product) => {
+  if (!isLoggedIn) {
+    onOpenAccount();
+    return;
+  }
 
-    const targetProduct = itemToAdd || product;
-    const isEverydayItem =
-      section === "everyday" ||
-      categorySlug.includes("t-shirts") ||
-      targetProduct?.category === "everyday";
+  const targetProduct = itemToAdd || product;
 
-    if (isEverydayItem || !targetProduct.isCustomizable) {
-      await addToCart(targetProduct._id, null);
-      navigate("/cart");
-      return;
-    }
+  try {
+    await addToCart(
+      targetProduct._id,  // productId
+      null,               // profileId
+      customizationId || null, // customizationSelectionId
+      1,                  // quantity
+      0                   // additionalFee
+    );
 
-    if (section === "classics" && targetProduct?.isCustomizable && !customizationId) {
-      setShowCustomizationModal(true);
-      return;
-    }
+    onOpenCart();
 
-    setShowProfileModal(true);
-  };
-
+  } catch (error) {
+    console.error("Failed to add product:", error);
+  }
+};
   const handleCustomize = () => {
     if (!isLoggedIn) {
-      navigate("/login");
+       onOpenAccount();
       return;
     }
     setShowCustomizationModal(true);
@@ -140,7 +137,7 @@ useEffect(() => {
     setShowCustomizationModal(false);
     setShowProfileModal(true);
   };
-console.log(product)
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center pt-20">

@@ -10,7 +10,7 @@ import EverydayPage from './Pages/EverydayPage'
 import ClassicsPage from './Pages/ClassicsPage'
 import {BrowserRouter,Routes,Route} from'react-router-dom'
 import { Outlet } from "react-router-dom";
-import useAuthStore from '../src/store/userAuthStore'
+import useAuthStore from './store/userAuthStore'
 import ProtectedRoute from './components/protectedroute/ProtectedRoute'
 import CartPage from './Pages/CartPage'
 import FavoritesPage from './components/account/FavoritesPage'
@@ -28,19 +28,58 @@ import OrderConfirmationPage from './Pages/OrderConfirmationPage'
 import UserOrdersPage from './Pages/UserOrderPage'
 import AdminOrderPage from './Pages/AdminOrderPage'
 import AdminRoute from './components/protectedroute/AdminRoute'
+import CartDrawer from './components/layout/CartDrawer'
+import AccountBar from './components/account/AccountSidebar'
+import api from './api/axios'
 function App() {
   const [count, setCount] = useState(0)
+  const [showCart, setShowCart] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
 const{checkAuth}=useAuthStore()
 
+const user = useAuthStore((state) => state.user);
+const googleLogin = useAuthStore((state) => state.googleLogin);
   // On every page load/refresh — check if user is still logged in
   useEffect(() => {
     checkAuth();
   }, []);
+const handleOpenCart = () => {
+  setShowCart(true);
+};
+
+const handleOpenAccount = () => {
+  setShowAccount(true);
+};
+// Get logout action from Zustand
+const logout = useAuthStore((state) => state.logout);
+
+const handleLogout = () => {
+  // Clear authentication state and localStorage
+  logout();
+
+  // Close account drawer
+  setShowAccount(false);
+
+  // Close cart drawer
+  setShowCart(false);
+
+  console.log("User logged out successfully");
+};
+
+const handleGoogleSuccess = async (credentialResponse) => {
+  try {
+    await googleLogin(credentialResponse.credential);
+    setShowAccount(false);
+  } catch (error) {
+    console.error("Google login failed:", error);
+  }
+};
 
   const NavbarLayout = () => {
   return (
     <>
-      <Navbar /> {/* Navbar only lives inside this wrapper! */}
+      <Navbar onOpenCart={handleOpenCart}
+        onOpenAccount={handleOpenAccount} /> {/* Navbar only lives inside this wrapper! */}
       {/* main with flex-1 forces the footer to the bottom of short pages */}
       <main className="flex-1 flex flex-col bg-amber-50">
         <Outlet />
@@ -62,9 +101,7 @@ const{checkAuth}=useAuthStore()
 <Route path='/everyday' element={<EverydayPage/>}/>
 <Route path='/classics' element={<ClassicsPage/>}/>
  <Route path='/' element={<LandingPage/>}/>
- <Route path="/cart" element={
-          <ProtectedRoute><CartPage /></ProtectedRoute>
-        } />
+
 
    <Route path="/checkout" element={
           <ProtectedRoute><CheckoutPage /></ProtectedRoute>
@@ -102,11 +139,21 @@ const{checkAuth}=useAuthStore()
  {/* ── Category + Product Routes ── */}
         <Route path="/classics/:categorySlug" element={<CategoryListingPage section="classics" />} />
         <Route path="/everyday/:categorySlug" element={<CategoryListingPage section="everyday" />} />
-           <Route path="/products/:slug" element={<ProductPage />} />
+           <Route path="/products/:slug" element={<ProductPage onOpenCart={handleOpenCart}    onOpenAccount={handleOpenAccount} />}
+         />
  </Route>
  </Routes>
- 
- 
+  <CartDrawer
+  isOpen={showCart}
+  onClose={() => setShowCart(false)}
+/>
+<AccountBar
+    isOpen={showAccount}
+    onClose={() => setShowAccount(false)}
+    user={user}
+    onGoogleSuccess={handleGoogleSuccess}
+    onLogout={handleLogout}
+  />
  </BrowserRouter>
 
  

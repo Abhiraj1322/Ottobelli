@@ -29,34 +29,56 @@ const useAuthStore = create((set) => ({
   },
 
 // Login
-login: async (email, password) => {
+// Google Login
+googleLogin: async (credential) => {
   set({ isLoading: true, error: null });
-  try {
-    const res = await api.post("/api/auth/login", { email, password });
-    
-    // 1. Save Token
-    localStorage.setItem("token", res.data.token); 
 
-    // 2. Save User Object (contains role: "admin")
+  try {
+    // Send Google's ID token to your backend
+    const res = await api.post("/api/auth/google", {
+      credential,
+    });
+
+    // Save your application's JWT
+    localStorage.setItem("token", res.data.token);
+
+    // Save user information
     localStorage.setItem("user", JSON.stringify(res.data.user));
 
-    set({ user: res.data.user, isLoggedIn: true, isLoading: false });
-    return res.data.user; // Returning user allows handling post-login redirect based on role
+    // Update Zustand state
+    set({
+      user: res.data.user,
+      isLoggedIn: true,
+      isLoading: false,
+      error: null,
+    });
+
+    return res.data.user;
+
   } catch (err) {
-    set({ error: err.response?.data?.message || "Login failed", isLoading: false });
+    set({
+      error: err.response?.data?.message || "Google login failed",
+      isLoading: false,
+    });
+
     throw err;
   }
 },
+
+
+
   // Logout
-  logout: () => {
-    // ⭐ 2. REMOVE THE TOKEN FROM LOCAL STORAGE
-    localStorage.removeItem("token");
+logout: () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
 
-    // ⭐ 3. CLIENT-SIDE ONLY LOGOUT
-    // Since JWTs are stateless, we don't need to call a backend route anymore!
-    set({ user: null, isLoggedIn: false, error: null });
-  },
-
+  set({
+    user: null,
+    isLoggedIn: false,
+    isLoading: false,
+    error: null,
+  });
+},
   // Check if user is still logged in on app load / page refresh
   checkAuth: async () => {
     // If there is no token in localStorage, don't even bother calling the API

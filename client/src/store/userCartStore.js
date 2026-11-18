@@ -13,6 +13,9 @@ const useCartStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const res = await api.get("/api/cart");
+
+
+
       set({
         items: res.data.cart.items || [],
         total: res.data.total || 0,

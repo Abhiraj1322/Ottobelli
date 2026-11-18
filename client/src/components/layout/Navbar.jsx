@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import AccountBar from "../account/AccountSidebar";
 import SearchOverlay from "./SearchOverlay";
+import CartDrawer from "./CartDrawer";
 const CUSTOM_SUBCATEGORIES = new Set([
   "Suits",
   "Blazers",
@@ -13,15 +14,17 @@ const CUSTOM_SUBCATEGORIES = new Set([
   "Pants",
 ]);
 
-export default function Navbar() {
+export default function Navbar({onOpenCart,onOpenAccount}) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-const [showAccount, setShowAccount] = useState(false);
-const [user, setUser] = useState(null);
-const [showSearch, setShowSearch] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+
   useEffect(() => {
     if (!activeMenu) return;
 
@@ -88,7 +91,7 @@ const [showSearch, setShowSearch] = useState(false);
     }
 
     fetchMenuData();
-console.log(products)
+    console.log(products)
     return () => {
       cancelled = true;
     };
@@ -100,16 +103,32 @@ console.log(products)
     activeMenu === "classics" ? "Classics" : "Everyday";
 
   const promoProduct = products[0];
-const handleLogout = () => {
-  // Remove the JWT from browser storage
-  localStorage.removeItem("token");
+  const handleLogout = () => {
+    // Remove the JWT from browser storage
+    localStorage.removeItem("token");
 
-  // Clear the logged-in customer
-  setUser(null);
+    // Clear the logged-in customer
+    setUser(null);
 
-  // Close the account sidebar
-  setShowAccount(false);
+    // Close the account sidebar
+    setShowAccount(false);
+  };
+
+
+
+const fetchCart = async () => {
+  try {
+    const response = await api.get("/cart");
+
+    console.log("Cart response:", response.data);
+
+    // We will set this after confirming your API response structure.
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+  }
 };
+
+
   return (
     <header
       className="relative z-50 border-b border-stone-200 bg-white"
@@ -136,11 +155,10 @@ const handleLogout = () => {
                   current === section ? null : section
                 )
               }
-              className={`border-b-2 py-7 text-[10px] font-semibold uppercase tracking-[0.14em] transition sm:text-xs ${
-                activeMenu === section
-                  ? "border-stone-900"
-                  : "border-transparent hover:text-stone-500"
-              }`}
+              className={`border-b-2 py-7 text-[10px] font-semibold uppercase tracking-[0.14em] transition sm:text-xs ${activeMenu === section
+                ? "border-stone-900"
+                : "border-transparent hover:text-stone-500"
+                }`}
             >
               {section}
             </button>
@@ -174,56 +192,54 @@ const handleLogout = () => {
             Book a Fitting
           </Link>
 
-       <button
-  type="button"
-  onClick={() => setShowSearch(true)}
-  onMouseEnter={closeMenu}
-  aria-label="Search"
-  className="p-1 transition hover:text-stone-500"
->
-  <svg
-    viewBox="0 0 24 24"
-    className="h-6 w-6"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-  >
-    <circle cx="10.8" cy="10.8" r="6.8" />
-    <path d="m16 16 5 5" />
-  </svg>
-</button>
+          <button
+            type="button"
+            onClick={() => setShowSearch(true)}
+            onMouseEnter={closeMenu}
+            aria-label="Search"
+            className="p-1 transition hover:text-stone-500"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <circle cx="10.8" cy="10.8" r="6.8" />
+              <path d="m16 16 5 5" />
+            </svg>
+          </button>
 
-        <button
-  type="button"
-  onClick={() => {
-    closeMenu();
-    setShowAccount(true);
-  }}
-  aria-label="Account"
-  className="hidden p-1 transition hover:text-stone-500 sm:block"
->
+          <button
+            type="button"
+            onClick={onOpenAccount}
+            aria-label="Account"
+            className="hidden p-1 transition hover:text-stone-500 sm:block"
+          >
 
-<SearchOverlay
-  isOpen={showSearch}
-  onClose={() => setShowSearch(false)}
-/>
+            <SearchOverlay
+              isOpen={showSearch}
+              onClose={() => setShowSearch(false)}
+            />
 
 
 
-  <svg
-    viewBox="0 0 24 24"
-    className="h-6 w-6"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-  >
-    <circle cx="12" cy="7" r="4" />
-    <path d="M4 21a8 8 0 0 1 16 0" />
-  </svg>
-</button>
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <circle cx="12" cy="7" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+          </button>
 
-          <Link
-            to="/cart"
+          <button
+            type="button"
+            onClick={onOpenCart}
             onMouseEnter={closeMenu}
             aria-label="Shopping bag"
             className="p-1 transition hover:text-stone-500"
@@ -238,7 +254,7 @@ const handleLogout = () => {
               <path d="M5 8h14l-1 13H6L5 8Z" />
               <path d="M9 8V6a3 3 0 0 1 6 0v2" />
             </svg>
-          </Link>
+          </button>
         </div>
       </nav>
 
@@ -394,35 +410,17 @@ const handleLogout = () => {
           </div>
         </div>
       )}
-      <AccountBar
-  isOpen={showAccount}
-  onClose={() => setShowAccount(false)}
-  user={user}
-onGoogleSuccess={async (response) => {
-  try {
-    const result = await api.post("/api/auth/google", {
-      credential: response.credential,
-    });
 
-    console.log("Backend response:", result.data);
+      <CartDrawer
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+        cartItems={[]}
+      />
 
-    // Update the user state
-    setUser(result.data.user);
 
-    // Store your Ottobelli JWT
-    localStorage.setItem("token", result.data.token);
 
-  } catch (error) {
-    console.error(
-      "Google authentication error:",
-      error.response?.data || error.message
-    );
-  }
-}}
-  onLogout={handleLogout}
-/>
     </header>
   );
 
-  
+
 }
